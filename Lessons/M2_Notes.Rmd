@@ -1,0 +1,78 @@
+---
+Author: Maggie O'Shea
+---
+
+## Reviewing Basic Statistics Concepts 
+
+**Variance**: Average of squared differences from mean
+  - how far extremes are from your mean 
+
+**Standard Deviation**: measure how spread out are the numbers 
+  - distance from the mean 
+  - 3rd standard deviations away from mean is the edge/outside of 99%
+  - square of distance from value to the mean, sum distances and divide by number of observations and take square root 
+
+## Stochastic Processes
+  - Overall mean/SD is not a good representation of dataset because mean/SD is changing over time --> so if just look at mean then you will be off
+  - How to address?
+    - Mean *Function* 
+    - Variance *function* 
+    - Autocovariance *function*
+    - Autocorrelation *function*
+    - Each is a *function* of time 
+    
+  - **Mean Function** is //mu\\ sub t = E(Ysubt) --> expected value of process at time t 
+  - **Variance Function** 
+     - sd-t^2 = E(Yt^2) - mu-t^2
+  - 
+
+## Autocovariance Function
+- *Autocovariance Function*: 
+      - Cov(Yt1, Ytn) = E[YtYtn] - mutn*mut1
+      
+## Autocorrelation Function (ACF)
+  - What is *correlation*? 
+    - Covariance and correlation measure *joint variability* of two variables 
+      - Join variability: how two variables are deviating from the mean (if you go above the mean on one, do you also go above the mean on the other? if yes, positive correlation)
+  - What is *autocorrelation*?
+    - It is a measure of dependence between two adjacent values of the same variables --> self correlation
+        - Ex: correlation between temperature today and yesterday = autocorrelation
+        - Best to rely on this for your model because you aren't introducing new uncertainty with projecting out explanatories variables
+  - *Autocorrelation Function*: Ro-t1-tn = Corr (Yt1, Ytn)
+       - Corr(Yt1, Ytn) =  Cov(Yt1,Ytn)/sqrt(varianceYt1,varianceYtn)
+       
+  - How to compute autocorrelation --> Yt is the original series and Yn is the lagged version
+      - Then can calculate the correlation between the two: the original and one lagged
+      - Do as many lags as you can when testing autocorrelation 
+          - you do remove the last values at the end when you keep lagging and so can't do it till the end
+      - You want the autocorrelation to decay over time because you want the closest values together to be the most correlated which is when there is just a lag of 1
+
+- **maine point** autocovariance and autocorrelation function give information about the dependence structure of a time series
+
+    - Autocorrelation function close to +- 1 indicate strong linear dependence
+    - Values of Autocorrelation functino close to 0 indicate weak linear dependence 
+    - If autocorrelation function is exactly 0 then the two values are uncorrelated 
+
+## Stationary Process
+
+    - Basic idea of *stationarity* is that the probability laws that govern the behavior of the process do not change over time 
+      - Stationary process when mean function is constant over time 
+      - Distribution of observations at early time points is = to distribution of observations at later time points 
+    - Most are not stationary but you want to identify why not stationary 
+    
+  Consequences of Stationarity 
+      - Distribution of Yt is the same of Yt-k for all t and all k 
+          - Mean function will be constant, variance will be constant 
+          - Autocovariance function will also be constant 
+              - For example: the coviariance between Yt and Ys depends on the time difference between t and s and not on the actual times t and s 
+              
+White Noise Series: 
+  - Example of stationary process: white noise series 
+  - White noise series is a sequence of independent, identically distributed (i.i.d) random variables (et) 
+  - {et} is a stationary process 
+  - In time series modeling, assume white noise process has mean zero and constant variance 
+      - Zero mean: because white noise is some variations over zero 
+      - In time series modeling, Want residuals to be white noise (no autocorrelation in residual series, or a mean that is greater than zero)
+
+
+## Partial Autocorrelation Function (PACF)
