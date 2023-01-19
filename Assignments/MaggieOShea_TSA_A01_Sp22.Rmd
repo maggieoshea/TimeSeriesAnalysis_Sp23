@@ -19,12 +19,12 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 Q1. What are your previous experiences with time series analysis, R, and Git? 
 
-> Answer: 
+> Answer: My only exposure to Time Series analysis is the module within the Environmental Data Analytics course. Thus, I have a preliminary understanding of basic Time Seris but do not have a complex or nuanced understanding of the analysis at all. As for R, I have taken many classes that require that I use R and for my summer internship and Masters Thesis I am using R to conduct my analysis, create my visualizations, and possibly write the report as well. Finally, I am fairly comfortable in Git - I used it in EDA, as well as geospatial data analytics, and, finally, through my work this summer, used Git to work collaboratively on a data science project. 
 
 
-Q2. (Only if you choose to use git) Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository and that you have updated your course README file as instructed on the recorded video "Getting started with Git and Github". 
+Q2. (Only if you choose to use git) Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository and **that you have updated your course README file as instructed on the recorded video "Getting started with Git and Github".** 
 
-> Answer: 
+> Answer: https://github.com/maggieoshea/TimeSeriesAnalysis_Sp23
 
 
 Q3. For this part we just want to see the path to your R project. No need to do anything. The output will be automatically generated once you knit you file. 
