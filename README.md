@@ -7,6 +7,7 @@ Meeting time: T-Th 12:00 to 1:15 pm <br>
 Zoom Meeting ID: 981 7671 7233 <br>
 Passcode: S2023 <br>
 
+**Student:** Maggie O'Shea
 
 **Instructor** <br>
 
