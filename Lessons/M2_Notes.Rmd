@@ -38,6 +38,7 @@ Author: Maggie O'Shea
     - It is a measure of dependence between two adjacent values of the same variables --> self correlation
         - Ex: correlation between temperature today and yesterday = autocorrelation
         - Best to rely on this for your model because you aren't introducing new uncertainty with projecting out explanatories variables
+    - Lag 1 autocorrelation: correlation of today with yesterday -- looking one step back in the past, vs. Lag 2 which is correlation of t and t-2
   - *Autocorrelation Function*: Ro-t1-tn = Corr (Yt1, Ytn)
        - Corr(Yt1, Ytn) =  Cov(Yt1,Ytn)/sqrt(varianceYt1,varianceYtn)
        
@@ -47,7 +48,7 @@ Author: Maggie O'Shea
           - you do remove the last values at the end when you keep lagging and so can't do it till the end
       - You want the autocorrelation to decay over time because you want the closest values together to be the most correlated which is when there is just a lag of 1
 
-- **maine point** autocovariance and autocorrelation function give information about the dependence structure of a time series
+- **main(e) point** autocovariance and autocorrelation function give information about the dependence structure of a time series
 
     - Autocorrelation function close to +- 1 indicate strong linear dependence
     - Values of Autocorrelation functino close to 0 indicate weak linear dependence 
@@ -58,6 +59,7 @@ Author: Maggie O'Shea
     - Basic idea of *stationarity* is that the probability laws that govern the behavior of the process do not change over time 
       - Stationary process when mean function is constant over time 
       - Distribution of observations at early time points is = to distribution of observations at later time points 
+          - The mean should not change if you take the first set of points mean and the second set of points mean
     - Most are not stationary but you want to identify why not stationary 
     
   Consequences of Stationarity 
@@ -76,3 +78,12 @@ White Noise Series:
 
 
 ## Partial Autocorrelation Function (PACF)
+  - The ACF of a stationary process Yt at lag h measures the linear dependency among the process variables 
+    - but the middle variables t-1, t-2, t-3, up to t-h influence this so have to remove the influence of all those intermediate variables to get the correlation between only Yt and Yt-h --> that is the partial autocorrelation function (just Yt and Yt-h, no intermediate variables)
+    - the ACF and PACF measure the temporal dependency of a stochastic process 
+    - The ACF and PACF give us information about the auto-regressive component of the series 
+        - Auto-regressive: regressing on previous observations of Y 
+    - The PACF for lag 1 and ACF for lag 1 will always be the same 
+    - 
+
+
