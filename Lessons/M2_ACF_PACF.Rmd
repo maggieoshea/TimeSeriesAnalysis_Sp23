@@ -72,16 +72,24 @@ The data sets we will work with will be index by time, remember we are doing TIM
 ```{r}
 #using package lubridate
 my_date <- paste(raw_inflow_data[,1],raw_inflow_data[,2],sep="-")
-my_date <- my(my_date)  #function my from package lubridate
+#Pasting column 1 indicated by [,1] and column 2 [,2]
+my_date <- my(my_date)  #function my from package lubridate 
+#it says: my because it means month year, so if you want to do year, month then it would be ym
 head(my_date)
 #add that to inflow_data 
 inflow_data <- cbind(my_date,raw_inflow_data[,3:5])
+#cbind = column binding
 head(inflow_data)
 format(my_date[1],format="%y-%m")
 format(my_date[1],format="%Y-%m")
 format(my_date[1],format="%Y-%b")
+#b means written month so from 01 to Jan
 
-
+## Test
+my_date2 <- paste(raw_inflow_data[,2],raw_inflow_data[,1],sep="-")
+my_date2 <- ym(my_date2)
+head(my_date2)
+head(my_date)
 ```
 
 ## Initial plots
