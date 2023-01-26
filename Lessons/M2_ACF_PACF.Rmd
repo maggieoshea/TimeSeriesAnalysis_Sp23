@@ -168,3 +168,14 @@ ts_inflow_data
 
 Note that ts_inflow_data has information on start, end and frequency. We will discuss frequency in future lectures, for now let's just keep the default value for frequency which is 1.
 
+```{r}
+acf(ts_inflow_data[,1], lag.max = 50)
+#Each bar represents auto-correlation
+#ACF will always range between 1 and -1 
+#This plot shows a seasonal component 
+#This plot shows up to lag 30 which is a lot 
+#Blue dotted lines are significant levels, so anything within those lines is not significant enough 
+
+pacf(ts_inflow_data[,1], lag.max=50)
+```
+

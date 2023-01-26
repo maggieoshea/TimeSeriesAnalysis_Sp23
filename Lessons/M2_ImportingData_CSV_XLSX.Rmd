@@ -34,6 +34,7 @@ library(tseries)
 Importing data set without change the original file using `read.xlsx()`.
 
 ```{r}
+install.packages("xlsx")
 library(xlsx)
 
 energy_data1 <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) #startRow is equivalent to skip on read.table
