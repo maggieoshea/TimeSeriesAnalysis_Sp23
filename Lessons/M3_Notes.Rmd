@@ -1,0 +1,194 @@
+---
+Title: "Module 3 Class Notes: Trend and Seasonality"
+Author: Maggie O'Shea
+---
+
+# Trend and Seasonality: Overview
+  - Modeling the trend and seasonal component: 
+      - This helps you separate what is a trend vs. what is seasonality
+      - In order to forecast the future, need to see what was happening in the past 
+      
+## Time Series Components: 
+  - Time series can have trend component, seasonal component, cyclical component, and random component
+      - When you decompose a series you separate it into these components 
+      - Often the cyclical piece is included in the trend part 
+      - Random is whatever is left when you take trend and seasonal out 
+      
+## Causes of Variation in TS data
+  - Calendar Variations: seasons, holidays, weekends
+  - Example: 
+      - Videogame usage over time 
+          - Seasonality: usage up on the weekend and down during the week 
+          - Increased usage during holidays
+          - Summertime weekdays and weekends blend together 
+  - Natural Calamities: earthquake, epidemic, flood, drought
+      - Example: gas prices over time show crash in 2008, then crash in pandemic
+      - This would be included in the random component because can't forecast or predict sudden hazards etc.
+      
+# Trend Component
+  - Long-term tendency
+      - Increase (upward movement) or Decrease (downward movement)
+      - Can be linear or non-linear
+
+## Linear Trend Component
+  - Yi = beta-knot + beta1*t-i + error-i
+  - Slope (beta1) and the intercept (beta-not) are the unkown paramters and E is the error term 
+  - Estimate using Ordinary least squares
+      - Minimizes error term (distance between observation and line)
+  - code: lm(Y~t)
+      - Y = vector with observed series
+      - t = vector from 1 to number of observations of 1
+      - for lm function vectors Y and t have to be in dataframe format 
+
+
+### Linear Trend Estimation and Removal 
+  - 1) Model the trend: find beta-knot and beta-1
+  - 2) for each observation t remove trend: 
+      - Y-detrendt = Yt - (B-knot+Beta-1*t)
+          - Essentially subtracting the model (the equation) from each observation
+
+
+## Non-linear trend
+  - Polynomial trend, quadratic trend
+
+### Moving Average for Non-Linear Trend Estimation (smoothed trend) 
+  - Smooth out the trend with something like a rolling average 
+      - A moving average trendline smooth out flunctuations in data to show a pattern or trend more clearly
+      - Which order to use for moving average?
+          - If seasonality, can use the order of the seasonality
+          - Trial and error process
+  - Looking at the rolling average makes it easier to see how the trend is moving underneath the noise 
+  - When we smooth the trend, we allow the trend to change over time (not looking for linear trend)
+  - Centered moving average: take average of 6 before and 6 after; or non-centered is just average of 6 before (6 is random number)
+  
+  
+# Seasonality 
+## Seasonal Component
+    - Short term regular wave-like patterns
+        - Observed within 1 year-monthly or quarterly 
+        - Equally spaced peaks and troughs 
+            - if not equally spaced, then they are just cycles and are usually captured in the trend
+
+## Seasonal Component Estimation
+  - 1) Smoothing the trend with a moving average
+  - 2) De-trend the series
+      - Additive ModelL 
+          - Take original series and subtract the smoothed trend 
+              - Yseasonal = Y - Ytrend
+      - Multiplicative model
+          - Scales the size of the seasonal component as the trend rises or falls
+              - Meaning the seasonal component has a correlation with the trend component
+          - Take original series and *divide* the original data by the trend 
+              - Yseasonal = Y/Ytrend
+  - 3) Assume the observed detrended series can be represented as a sum of means: 
+        - Yseasonalt = mut + Xt where E[Xt] = 0
+        - For monthly seasonal data assumes 12 parameters such as: 
+             Mean of t (mut) = beta1 for t=1,13,25; beta2 for t=2, 14, 26 ... beta12 for t = 12, 24, 36..
+  - 4) Estimate the parameters beta1, beta2, ..., beta12
+      - Create dummies (categorical variables with 2 levels):
+          Ds,t = 1 if t belongs to season s, 0 if otherwise for s = 1, 2, ..., 12
+          for any time period t, one of the seasonal dummies (see slide)
+  - 5) Write series Yseasonal as a function of [[SEE SLIDE]]
+
+
+## Additive vs. Multiplicative Model 
+  - In the additive model: the magnitude of seasonanality does not change in relation to time
+  - In the multiplicative model: the magnitude of the seasonal pattern depends on the magnitude/level of the data
+      - If you do an additive model on a dataset that is multiplicative it will look like there is still a seasonality to it
+      
+## Seasonal Trend Estimation in R 
+  - First create seasonal dummies using seasonaldummy() [from package forecast]
+      - dummies = seasonaldummy(Y)
+  - This will only work if Y is a time series object and if you specify frequency
+      - Y = ts(Y, frequency = 12)
+  - Then run a regression on the dummies 
+      - lm(Y~dummies,data)
+
+## Seasonal + Trend Decomposition
+  - Sum seasonal and trend and graph with the original seasonal data 
+      - Exactly perfect match is impossible, but if you graph with historical data you can see how good your model is and if it's worth using to project 
+      - You want the difference between the two to look like white noise -- errors have to be constant at mean of 0 
+
+# Stochastic vs. Deterministic       
+## Series with Deterministic Trend
+  - Deterministic linear trend process 
+  - Detrending is accomplished by running a regression [[see slide]]
+
+## Series with Stochastic Trend 
+  - Some series have difference-stationarity
+  - Although trend-stationarity and difference stationarity series are both 'trending' over time, the stationarity is achieved by a distinct procedure 
+  - In the case of difference-stationarity, stationarity is achieved by differencing the series
+  - Sometimes we need to difference the series more than once 
+      - Sometimes differentiating once will not eliminate the trend 
+  - Issue with this: you are not modeling the trend 
+  - stochastic trend is need when error terms won't be averaging at 0 --> a trend that is trending over time 
+
+## Stationarity Tests
+*Primary tests used for class in bold*
+  - **Mann-Kendall Test** : Monotonic/deterministic Trend (trends that have overall trends)
+  - **Spearman's Rank Correlation Test**: Monotonic/deterministic Trend 
+  - **Dickey-Fuller (ADF) Test**: Stochastic Trends / Unit root
+      - A stands for augmented
+      - If ADF tells you there is no trend, which means there is no *stochastic* trend (there may be a deterministic trend)
+  - Phillips-Perron (PP) test - unit root 
+  - Kitawoski-Phillips-Schmidt-Shin - Unit Root 
+
+## Review: Hypothesis Testing
+  - Why do we use hypothesis testing: 
+      - To analyze evidence provded by data 
+      - TO make decisions based on data 
+  - What is a statistical hypothesis?
+      - An assumption about a population parameter that may or may not be true 
+  - In Hypothesis testing we usually have: 
+      - H-knot: the null hypothesis 
+      - H1: The alternative hypothesis 
+  - Procedure: 
+      - State hypotheses and identify the claim 
+      - Find the critical value(s) from the appropriate table (z table) 
+      - Computer the test value
+      - Make the decision to reject or not reject the null hypothesis 
+      - *Result* If p-value <0.05, reject the null hypothesis. If p-value > 0.05 do not reject null. 
+
+# Mann-Kendall test
+  - Commonly Employed to detect deterministic trends in series of environmental, climate, or hydrological data
+  - **Cannot** be applied to seasonal data 
+  - Test is comparing pairwise observations 
+  - Hypothesis: 
+      - Hknot: Yt is i.i.d (stationary) [identically, independently distributed]
+          - Independent: no self-correlation 
+          - Identical: all observations similar/same?
+      - H1: Yt follows a trend 
+
+## Mann-Kendall Test in R 
+  - The Mann-Kendall test in R done with: MannKendall() from package "Kendall"
+      - Has to be a time series object 
+      - It will tell  you the value of 's' which is an indication of how many times your second observation was greater or less than previous year 
+      - For seasonal data can use SeasonalMannKendall()
+          - Rather than comparing to the observation before, for example a January observation, it will look at the observation from January the year before 
+          
+# Spearman's Rank Correlation Coefficient
+  - Spearman's correlation coefficient is a statistical measure of the strength of a monotonic relationship 
+      - Very similar to Pearson's correlation, but the relationship doesn't have to be linear 
+  - If one variable increases so does the other, it does not matter the proportion of the increase 
+      - the Spearman's correlation will always be stronger correlation than the Pearson's because it fits the relationship more closely
+  - Like a correlation analysis, but it is a time stamp time series 
+      - You are looking at the correlation between two series, the observations series and the time series
+
+# (Augmented) Dickey Fuller Test 
+  - Tests if the trend is stochastic 
+  - Where I've been isn't influencing where I am going 
+  - Yt - a + thetaYt-1 + Et 
+  - The objective is to test: 
+      - Hknot: theta = 1 (contains a unit root)
+      - H1 |theta| < 1 (is stationary)
+  - ADF in R: 
+      - command adf.test() from package "tseries"
+      - adf.test(data, alternative = "stationary"... )
+      
+      
+      
+      
+      
+
+
+
