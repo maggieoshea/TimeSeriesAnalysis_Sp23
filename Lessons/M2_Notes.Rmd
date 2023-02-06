@@ -85,5 +85,15 @@ White Noise Series:
         - Auto-regressive: regressing on previous observations of Y 
     - The PACF for lag 1 and ACF for lag 1 will always be the same 
     - 
+    
+## PACF vs. ACF review
 
+ACF: Yt = beta*Yt-1 + error term
+      Yt = beta2*Yt-2 + error term 
+      beta represents the ACF, the relationships between Yt and Yt-1, Yt and Yt-2
+
+PACF: Yt = beta * Yt-1 + beta2*Yt-2 + error term
+    This is accounting for the correlation for Yt and Yt-1 when looking at the correlation between Yt and Yt-2, so it essentially is just isolating *just* the relationship between Yt and Yt-2 by controlling for the intermediate variable's relationship --> the PACF value for Yt-2 is beta2 
+    
+    
 

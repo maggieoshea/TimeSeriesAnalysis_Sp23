@@ -73,7 +73,8 @@ Initial time series plot.
 for(i in 1:nhydro){
   print(ggplot(inflow_data, aes(x=my_date, y=inflow_data[,(1+i)])) +
             geom_line(color="blue") +
-            ylab(paste0("Inflow ",colnames(inflow_data)[(1+i)],sep="")) 
+            ylab(paste0("Inflow ",colnames(inflow_data)[(1+i)],sep=""))+
+          ylim(0,50000)
         )
 }
 
@@ -94,7 +95,7 @@ Note our last observation is from August 2011 but the data file was filled with 
 
 ```{r}
 #Remove last year by replacing current data frame
-inflow_data <- inflow_data[1:(nobs-412,]
+inflow_data <- inflow_data[1:(nobs-12),]
 
 #update object with number of observations
 nobs <- nobs-12
@@ -109,7 +110,8 @@ Fixed!
 Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*. 
 
 ```{r}
-
+ts_inflow <- ts(inflow_data[, 2:(2+nhydro-1)], frequency = 12, start=c(1931, 1, 1))
+head(ts_inflow)
 ```
 
 
@@ -118,23 +120,54 @@ Many of the functions we will use require a time series object. You can transfor
 Let's use functions Acf() and Pacf() from package "forecast".
 
 ```{r acf}
+library(forecast)
+
+for(i in 1:nhydro){
+  par(mfrow = c(1,2))
+  #par makes it grid your plots to show 1 row and 2 columns of plots
+  acf(ts_inflow[,i], lag.max = 40, main=paste0("HP", i))
+  pacf(ts_inflow[,i], lag.max = 40, main=paste0("HP", i))
+}
 
 
+#or you can call the name of the column to title the plots, results in the same thing but can be useful if your column names aren't uniform like HP15, HP16 etc. 
+column_names <- colnames(inflow_data)
+for(i in 1:nhydro){
+  par(mfrow = c(1,2))
+  #par makes it grid your plots to show 1 row and 2 columns of plots
+  acf(ts_inflow[,i], lag.max = 40, main=column_names[i+1])
+  pacf(ts_inflow[,i], lag.max = 40, main=column_names[i+1])
+}
+
+#40 is a high lag, once you remove the trend you won't need 40 lags to find the order (probably 12-15 will be enough to decide the lag number)
 
 ```
 
 
 ## Trend Component
 
-Let's identify and remove trend component like we leaned on the recorded videos for M4. You start by fitting a linear model to $Y_t=\beta_0+\beta_1*t+\epsilon_t$. 
+Let's identify and remove trend component like we learned in class. You start by fitting a linear model to $Y_t=\beta_0+\beta_1*t+\epsilon_t$. 
 
 ```{r}
 #Create vector t
+t <- 1:nobs 
+#t is a vector of time
+iHP <- 4
+linear_trend <- lm(inflow_data[,iHP+1] ~ t)
+summary(linear_trend)
+
+iHP <- (1:16)
+for(i in 1:15){
+linear_trend <- lm(inflow_data[,i+1] ~ t)
+paste0("results", i)<- summary(linear_trend)}
+#Name doesn't work
 
 
 
 #Fit a linear trend to TS of iHP
-
+ggplot(inflow_data, aes(x = my_date, y = inflow_data[,5]))+
+  geom_line(color = "blue")+
+  geom_smooth(method="lm", color = "red")
 
 ```
 

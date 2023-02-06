@@ -20,7 +20,7 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 R packages needed for this assignment:"forecast","tseries", and "dplyr". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.\\
 
-```{r}
+```{r library, message=FALSE}
 #Load/install required package here
 
 #Used '#' to make this code available for reproducibility but will not run every time I use the script.
@@ -62,7 +62,8 @@ head(clean_RE)
 Transform your data frame in a time series object and specify the starting point and frequency of the time series using the function ts().
 
 ```{r}
-ts_renewables <- ts(clean_RE[,2:4], frequency = 12)
+ts_renewables <- ts(clean_RE[,2:4], frequency = 12, start = c(1973, 1))
+head(ts_renewables)
 ```
 
 
@@ -86,7 +87,7 @@ Display and interpret the time series plot for each of these variables. Try to m
 
 ```{r}
 plot(ts_renewables[,"Total.Biomass.Energy.Production"],type="l",col="blue",
-     ylab="Biomass Energy Production",xlab="Time (Years since 1973)", 
+     ylab="Biomass Energy Production",xlab="Time", 
      main="Total Biomass Energy Production: 1973-2022") 
 abline(h=mean(ts_renewables[,"Total.Biomass.Energy.Production"]),col="red")
 legend("topleft",legend=c("Biomass Production","Mean"), 
@@ -94,14 +95,14 @@ legend("topleft",legend=c("Biomass Production","Mean"),
 
 
 plot(ts_renewables[,"Total.Renewable.Energy.Production"],type="l",col="blue",
-     ylab="Total Renewable Energy Production",xlab="Time (Years since 1973)", 
+     ylab="Total Renewable Energy Production",xlab="Time", 
      main="Total Monthly Renewable Energy Production: 1973-2022") 
 abline(h=mean(ts_renewables[,"Total.Renewable.Energy.Production"]),col="red")
 legend("topleft",legend=c("Renewable Energy Production","Mean"), 
        lty=c("solid","solid"),col=c("blue","red"))
 
 plot(ts_renewables[,"Hydroelectric.Power.Consumption"],type="l",col="blue",
-     ylab="Hydroelectric Power Consumption",xlab="Time (Years since 1973)", 
+     ylab="Hydroelectric Power Consumption",xlab="Time", 
      main="Monthly Hydroelectric Power Consumption: 1973-2022") 
 abline(h=mean(ts_renewables[,"Hydroelectric.Power.Consumption"]),col="red")
 legend("topleft",legend=c("Hydroelectric Power Consumption","Mean"),
@@ -114,19 +115,15 @@ legend("topleft",legend=c("Hydroelectric Power Consumption","Mean"),
 Compute the correlation between these three series. Are they significantly correlated? Explain your answer.
 
 ```{r}
-#Pearson's Correlation
+
 cor(clean_RE$Total.Biomass.Energy.Production, clean_RE$Total.Renewable.Energy.Production)
 cor(clean_RE$Total.Biomass.Energy.Production, clean_RE$Hydroelectric.Power.Consumption)
 cor(clean_RE$Total.Renewable.Energy.Production, clean_RE$Hydroelectric.Power.Consumption)
 
-#Spearman Correlation
-cor(clean_RE$Total.Biomass.Energy.Production, clean_RE$Total.Renewable.Energy.Production, method = "spearman")
-cor(clean_RE$Total.Biomass.Energy.Production, clean_RE$Hydroelectric.Power.Consumption, method = "spearman")
-cor(clean_RE$Total.Renewable.Energy.Production, clean_RE$Hydroelectric.Power.Consumption, method = "spearman")
 ```
 ### **Question 5 Answer:** 
 
-Total Biomass Energy Production and Total Renewable Energy Production are significantly correlated (pearson's correlation: ~0.92, spearman's correlation: ~0.89). Looking at the graphs in question 4, this is unsurprising as they both seem to increase in similar ways and of course, biomass production is likely an input or one piece of the total renewable production number. The other correlations are not as strong -- the second strongest is between biomass energy production and hydroelectric power with a pearson's correlation of -0.2998, and a spearman correlation of -0.2903. This indicates that when one increases the other may decrease -- this conceptually is possible because it is possible that when biomass production increases then the demand or consumption for hydroelectric power decreases because an alternative is available, that being biomass. Finally, Total Renewable Energy Production and Hydroelectric Consumption is not very correlated (pearson's: -0.0996, spearman: 0.0502). I would have expected a slightly stronger relationship given that hydroelectric power consumption is of course related to hydroelectric production which would be one part of the total renewable energy production, however because it is a distant relationship it is not entirely unexpected that they would not be more strongly correlated given all the other inputs to total renewable energy production.
+Total Biomass Energy Production and Total Renewable Energy Production are significantly correlated (correlation: ~0.92). Looking at the graphs in question 4, this is unsurprising as they both seem to increase in similar ways and of course, biomass production is likely an input or one piece of the total renewable production number. The other correlations are not as strong -- the second strongest is between biomass energy production and hydroelectric power with a correlation of -0.2998. This indicates that when one increases the other may decrease -- this conceptually is possible because it is possible that when biomass production increases then the demand or consumption for hydroelectric power decreases because an alternative is available, that being biomass. Finally, Total Renewable Energy Production and Hydroelectric Consumption is not very correlated (correlation: -0.0996). I would have expected a slightly stronger relationship given that hydroelectric power consumption is of course related to hydroelectric production which would be one part of the total renewable energy production, however because it is a distant relationship it is not entirely unexpected that they would not be more strongly correlated given all the other inputs to total renewable energy production.
 
 ## Question 6
 Compute the autocorrelation function from lag 1 up to lag 40 for these three variables. What can you say about these plots? Do the three of them have the same behavior?
@@ -139,7 +136,8 @@ acf(ts_renewables[,3], lag.max = 40)
 ```
 ### **Question 6 Answer:** 
 
-These three plots do not all have the same behavior. Plots 1 and 2 which represent Biomass Production and Total Renewable Energy Production have similar behavior with a generally decreasing and greater than 0 plot. Total Renewable Energy Production does seem to have a hint of seasonality or a cycle where the correlation moves up and down slightly while still following the general declining trend, and never moves to a negative correlation. Finally, Hydroelectric Power Consumption differs greatly from the first two because it does have what appears to be seasonality, not moving necessarily into a full negative correlation in the first low-season, but moving up and down from high to low correlation, and then to high positive and low negative correlation. 
+These three plots do not all have the same behavior. Plots 1 and 2, which represent Biomass Production and Total Renewable Energy Production are similar in that they have high positive correlation even towards the end of the plot after many lags. The highest correlations in both are 1, and the lowest for Total Renewable Energy is ~0.7 and for Biomass production ~0.75. They both seem to show a similar declining trend. Plot 2 differs slightly from plot 1 because it has a slight seasonality to it - though the correlations do decline similar to plot 1, they also have a slight increase and decrease that indicates seasonality. Finally, plot 3 shows definite seasonality. It appears that correlations are very strong at lag 0.0 (correlation 1.0) but decline over time and even move to negative numbers. However, for all of these plots, correlation even at the final lag are significant beyond the blue line (though less so for the final plot). 
+
 
 ## Question 7
 Compute the partial autocorrelation function from lag 1 to lag 40 for these three variables. How these plots differ from the ones in Q6?
@@ -151,5 +149,5 @@ pacf(ts_renewables[,3], lag.max = 40)
 ```
 ### **Question 7 Answer:** 
 
-These plots are very different from the ACF plots. While in the first ACF plots showed high positive correlations that were declining for plots 1 and 2, the PACF for 1 and 2 (Biomass and Total Renewables) instead show both positive and negative correlations that are less strong than in the previous plot. The final plot, hydroelectric power consumption, maintains some of the seasonality in the early stage of the plot (lag 0-1.5) but ultimately the correlations become quite weak after lab 1.5 and especially by 2.0. 
+These plots are very different from the ACF plots. While in the first ACF plots showed high positive (though declining) correlations for plots biomass and total renewables, the PACF for these instead show both positive and negative correlations that are less strong than in the previous plot. The final plot, hydroelectric power consumption, maintains some of the seasonality in the early stage of the plot (lag 0-1.5) but ultimately the correlations become quite weak after lag 1.5 and especially by 2.0. 
 
