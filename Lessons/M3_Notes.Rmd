@@ -32,7 +32,7 @@ Author: Maggie O'Shea
 
 ## Linear Trend Component
   - Yi = beta-knot + beta1*t-i + error-i
-  - Slope (beta1) and the intercept (beta-not) are the unkown paramters and E is the error term 
+  - Slope (beta1) and the intercept (beta-not) are the unknown parameters and E is the error term 
   - Estimate using Ordinary least squares
       - Minimizes error term (distance between observation and line)
   - code: lm(Y~t)

@@ -156,10 +156,11 @@ iHP <- 4
 linear_trend <- lm(inflow_data[,iHP+1] ~ t)
 summary(linear_trend)
 
-iHP <- (1:16)
-for(i in 1:15){
-linear_trend <- lm(inflow_data[,i+1] ~ t)
-paste0("results", i)<- summary(linear_trend)}
+#Trying something out: 
+#iHP <- (1:16)
+#for(i in 1:15){
+#linear_trend <- lm(inflow_data[,i+1] ~ t)
+#paste0("results", i)<- summary(linear_trend)}
 #Name doesn't work
 
 
@@ -173,10 +174,15 @@ ggplot(inflow_data, aes(x = my_date, y = inflow_data[,5]))+
 
 
 ```{r}
+beta0 <- linear_trend$coefficients[1]
+beta1 <- linear_trend$coefficients[2]
 #remove the trend from series
+detrend_inflow <- inflow_data[,(iHP+1)] - (beta0+beta1*t)
 
 
-
+ggplot(inflow_data, aes(x=my_date, y=HP4))+
+  geom_line(color = "blue")+
+  geom_line(aes(y=detrend_inflow), color = "green")
 ```
 Note that blue line is our original series, red lien is our trend, green line is our original series minus the trend or in other words the detrended series. And in orange is the trend line for the detrended series which has slope 0 meaning we were able to effectively eliminate the trend with a linear model.
 
@@ -186,18 +192,42 @@ Now let's shift attention to the seasonal component.
 
 ```{r}
 #Use seasonal means model
+iHP = 1
 
+dummies <- seasonaldummy(ts_inflow[,iHP])
 
+seasonal_means_model <- lm(inflow_data[,(iHP+1)] ~ dummies)
+summary(seasonal_means_model)
+
+beta0 <- seasonal_means_model$coefficients[1]
+beta1 <- seasonal_means_model$coefficients[2]
+
+inflow_seas_comp <- array(0,nobs)
+for (i in 1:nobs)(
+  inflow_seas_comp[i] = beta0 + beta1 %*% dummies[i,]
+)
+
+ggplot(inflow_data, aes(x=my_date, y=inflow_data[,iHP+1]))+
+  geom_line(color="blue")+
+  geom_line(aes(y=seasonal_means_model), color="orange")
 ```
+#Notes: 
+There is a negative value because they are all relative to the intercept (in this case December) so the mean for July will be December-1887.2
+
 
 ##Exercise
 
 Fit trend and seasonal for the other variables HP2, HP3, ...
 
+```{r}
+
+```
+
 
 ## Stationarity Tests in R
 
 Some test only work for non-seasonal data. So let's create another series with yearly averages for inflow.
+Mann-Kendall and Spearman tell us about a deterministic trend 
 
 ```{r}
 #Group data in yearly steps instances
@@ -214,6 +244,11 @@ Check for deterministic trend.
 #Since I have seasonal data I cannot use the simple MannKendall()
 #another example of functions that need a ts object
 
+#Seasonal Mann-Kendall
+SMKtest <- SeasonalMannKendall(ts_inflow[,iHP])
+summary(SMKtest)
+
+#Interpret results: p-value = <0.001 -- the null hypothesis is no trend. We reject the null so there is a trend.
 
 #Use yearly date to run Mann Kendall
 
@@ -238,6 +273,9 @@ Used to detect stochastic trend.
 
 ```{r}
 #Null hypothesis is that data has a unit root
+print(adf.test(ts_inflow[,iHP], alternative = "stationary"))
+#p-value is <0.01 so we reject the null that there is a unit root -- so data is stationary 
+# ADF is testing specifically for stochastic trend. We still have a deterministic trend (SMK test), but do not have a stochastic trend. This says that a linear trend model is a good enough approach
 print("Results for ADF test/n")
 
 #Now let's try the yearly data
