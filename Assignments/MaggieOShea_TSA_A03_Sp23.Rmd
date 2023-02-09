@@ -248,21 +248,26 @@ ggplot(energy_clean, aes(x=Month, y=`Hydroelectric Power Consumption`))+
 Use the regression coefficients from Q6 to deseason the series. Plot the deseason series and compare with the plots from part Q1. Did anything change?
 
 ```{r}
-detrend_Seas_biomass <- energy_clean$`Total Biomass Energy Production` - (beta0_biomassS+beta1_biomassS*t)
-detrend_Seas_RE <- energy_clean$`Total Renewable Energy Production` - (beta0_reS+beta1_reS*t)
-detrend_Seas_hydro <- energy_clean$`Hydroelectric Power Consumption`- (beta0_hydroS+beta1_hydroS*t)
 
+#Removing seasonal component
+
+deSeas_biomass <- energy_clean$`Total Biomass Energy Production` - biomass_seas_comp
+deSeas_RE <- energy_clean$`Total Renewable Energy Production` - RE_seas_comp
+deSeas_hydro <- energy_clean$`Hydroelectric Power Consumption`- hydro_seas_comp
+
+#Plot 
 ggplot(energy_clean, aes(x=Month, y=`Total Biomass Energy Production`))+
   geom_line(color="blue")+
-  geom_line(aes(y=detrend_Seas_biomass), color="orange")
+  geom_line(aes(y=deSeas_biomass), color="orange")+
+  labs(color = "legend")
 
 ggplot(energy_clean, aes(x=Month, y=`Total Renewable Energy Production`))+
   geom_line(color="blue")+
-  geom_line(aes(y=detrend_Seas_RE), color="orange")
+  geom_line(aes(y=deSeas_RE), color="orange")
 
 ggplot(energy_clean, aes(x=Month, y=`Hydroelectric Power Consumption`))+
   geom_line(color="blue")+
-  geom_line(aes(y=detrend_Seas_hydro), color="orange")
+  geom_line(aes(y=deSeas_hydro), color="orange")
 
 
 
@@ -274,23 +279,23 @@ Plot ACF and PACF for the deseason series and compare with the plots from Q1. Di
 
 ```{r}
 #Biomass 
-acf(detrend_Seas_biomass, lag.max=40)
+acf(deSeas_biomass, lag.max=40)
 #acf(energy_clean$`Total Biomass Energy Production`, lag.max = 40)
-pacf(detrend_Seas_biomass, lag.max=40)
+pacf(deSeas_biomass, lag.max=40)
 #pacf(energy_clean$`Total Biomass Energy Production`, lag.max = 40)
 
 #Renewable Energy
-acf(detrend_Seas_RE, lag.max=40)
+acf(deSeas_RE, lag.max=40)
 #acf(energy_clean$`Total Renewable Energy Production`, lag.max = 40)
-pacf(detrend_Seas_RE, lag.max=40)
+pacf(deSeas_RE, lag.max=40)
 #pacf(energy_clean$`Total Renewable Energy Production`, lag.max = 40)
 
 
 #Hydroelectric
-acf(detrend_Seas_hydro, lag.max=40)
+acf(deSeas_hydro, lag.max=40)
 #acf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
-pacf(detrend_Seas_hydro, lag.max=40)
+pacf(deSeas_hydro, lag.max=40)
 #pacf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
 
 ```
-
+#### Q8 Answer: 
