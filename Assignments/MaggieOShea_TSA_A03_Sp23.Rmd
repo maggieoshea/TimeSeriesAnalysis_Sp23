@@ -30,7 +30,7 @@ Consider the same data you used for A2 from the spreadsheet "Table_10.1_Renewabl
 
 R packages needed for this assignment:"forecast","tseries", and "Kendall". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.\\
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 #Load/install required package here
 library(forecast)
 library(tseries)
@@ -50,7 +50,7 @@ ts_energy <- ts(energy_clean[,2:4], frequency = 12, start = c(1973, 1))
 
 ```
 
-##Trend Component
+## Trend Component 
 
 ### Q1
 Create a plot window that has one row and three columns. And then for each object on your data frame, fill the plot window with time series plot, ACF and PACF. You may use the some code form A2, but I want all three plots on the same window this time. (Hint: use par() function)
@@ -64,7 +64,6 @@ for(i in 1:3){
   acf(energy_clean[,i+1], lag.max = 40)
   pacf(energy_clean[,i+1], lag.max = 40)
 }
-
 ```
 
 
@@ -117,7 +116,7 @@ beta1_hydro <- linearTrend_hydro$coefficients[2]
 ```
 
 ##### Interpret Hydroelectric Power Linear Trend:
-Again the intercept and t are statistically significant for hydroelectic power consumption. However, beta-1 for hydroelectric power is negative. The intercept is at 259.898 which is the value of hydroelectric power at time 0, but because the coefficient on time is negative (-0.083), this declines over time. 
+Again the intercept and t are statistically significant for hydroelectic power consumption. However, beta-1 for hydroelectric power is negative. The intercept is at 259.898 which is the value of hydroelectric power at time 0, but because the coefficient on time is negative (-0.083), this declines over time.
  
 ### Q4
 Use the regression coefficients from Q3 to detrend the series. Plot the detrended series and compare with the plots from Q1. What happened? Did anything change?
@@ -147,7 +146,7 @@ ggplot(energy_clean, aes(x=Month, y=`Hydroelectric Power Consumption`))+
 ```
 
 #### Q4 Answer:
-After removing the trend and plotting the detrended series, all of the plots changed. All of the plots moved down on the graph, with lower values than the non de-trended series. In addition, the first two plots (total renewable production and total biomass production) also were not only lower on the graph but the difference between the start and end values of energy production were more similar in both plots - essentially it is visible that the increasing trend in the data was removed making it closer to a flat trend over time. The decreasing trend in the hydroelectric plot is subtle, and thus this de-trending is more difficult to see in the detrended plot. 
+After removing the trend and plotting the detrended series, all of the plots changed. All of the plots moved down on the graph, with lower values than the non de-trended series. In addition, the first two plots (total renewable production and total biomass production) also were not only lower on the graph but the difference between the start and end values of energy production were closer together in both plots - essentially it is visible that the increasing trend in the data was removed making it closer to a flat trend over time. The decreasing trend in the hydroelectric plot is subtle, and thus this de-trending is more difficult to see in the detrended plot. 
 
 ### Q5
 Plot ACF and PACF for the detrended series and compare with the plots from Q1. Did the plots change? How?
@@ -157,14 +156,14 @@ Plot ACF and PACF for the detrended series and compare with the plots from Q1. D
 
 acf(detrend_biomass, lag.max=40)
 #acf(energy_clean$`Total Biomass Energy Production`, lag.max = 40)
-pacf(detrend_biomass, lag.max=40)
-#pacf(energy_clean$`Total Biomass Energy Production`, lag.max = 40)
+pacf(detrend_biomass, lag.max=40, ylim=c(-1,1))
+#pacf(energy_clean$`Total Biomass Energy Production`, lag.max = 40, ylim=c(-1,1))
 
 #Renewable Energy
 acf(detrend_RE, lag.max=40)
 #acf(energy_clean$`Total Renewable Energy Production`, lag.max = 40)
-pacf(detrend_RE, lag.max=40)
-#pacf(energy_clean$`Total Renewable Energy Production`, lag.max = 40)
+pacf(detrend_RE, lag.max=40, ylim=c(-1,1))
+#pacf(energy_clean$`Total Renewable Energy Production`, lag.max = 40, ylim=c(-1,1))
 
 
 #Hydroelectric
@@ -172,10 +171,17 @@ acf(detrend_hydro, lag.max=40)
 #acf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
 
 pacf(detrend_hydro, lag.max=40)
+#pacf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
+
 
 ```
 ##### Question 5 Answer: 
-In comparing ACF for biomass and for renewable energy, the detrended plots still seem to have a declining trend but the seasonal elements of the data are much more obvious, a change that is especially stark in the biomass production plot. The biomass production PACF and the renewable energy PACF are similar in that where there are high correlations in the PACF with the trend there are also high correlations in the detrended PACF. However, the detrended PACF correlations seem to be generally higher than the PACF with the trends. Finally, the ACF for hydroelectric without the trend has lower correlations, with more negative correlations as well as just broadly lower correlations even where positive. 
+
+In comparing ACF for biomass and for renewable energy, in both cases the detrended plots did have lower correlations than in the series with the trend. In both cases (biomass and renewable energy), the detrended plots appeared to show a seasonal component that was not as present in the original ACF.The ACFs, in both cases, also maintained their declining trend. 
+
+The PACF for renewable energy actually showed greater correlations (in both directions positive/negative) especially in the earlier lags, though looks more similar to the original PACF near lag 25. The same is true for the PACF for biomass production. 
+
+Finally, the ACF for hydroelectric without the trend has lower correlations, with more negative correlations as well as just broadly lower correlations even where positive. The PACFs for hydroelectric looked almost exactly the same, with minor differences in few correlations. 
 
 ## Seasonal Component
 
@@ -184,8 +190,6 @@ Set aside the detrended series and consider the original series again from Q1 to
 ### Q6
 Do the series seem to have a seasonal trend? Which serie/series? Use function *lm()* to fit a seasonal means model (i.e. using the seasonal dummies) to this/these time series. Ask R to print the summary of the regression. Interpret the regression output. Save the regression coefficients for further analysis.
 
-#### Q6 Pre-analysis Answer
-The hydroelectric consumption series has a clear seasonal trend according to the ACF. The other series, biomass and renewables, there appears to be seasonality as well, but more analysis is needed. 
 
 ```{r}
 #Biomass
@@ -194,41 +198,29 @@ biomass_dummies <- seasonaldummy(ts_energy[,1])
 biomass_seasMeans <- lm(energy_clean$`Total Biomass Energy Production` ~biomass_dummies)
 summary(biomass_seasMeans )
 
-beta0_biomassS <- biomass_seasMeans $coefficients[1]
-beta1_biomassS <- biomass_seasMeans $coefficients[2:12]
+```
 
-biomass_seas_comp <- array(0,nobs)
-for (i in 1:nobs)(
-  biomass_seas_comp[i] = beta0 + beta1 %*% biomass_dummies[i,]
-)
+**Biomass Seasonal Means Model: Interpretation**
+The P-value is 0.8714 on the F-statistic indicating that the model is not statistically significant. This indicates that there is not evidence of seasonality in the dataset. Because of this, I will not de-season the biomass data (and thus did not save the coefficients).
 
-ggplot(energy_clean, aes(x=Month, y=`Total Biomass Energy Production`))+
-  geom_line(color="blue")+
-  geom_line(aes(y=biomass_seas_comp), color="orange")
-
+```{r}
 #Total Renewable Energy
 RE_dummies <- seasonaldummy(ts_energy[,2])
 
 RE_seasMeans <- lm(energy_clean$`Total Renewable Energy Production` ~ RE_dummies)
 summary(RE_seasMeans )
+```
 
-beta0_reS <- RE_seasMeans$coefficients[1]
-beta1_reS <- RE_seasMeans$coefficients[2:12]
+**Renewable Energy Seasonal Means Model: Interpretation**
+P-value on F-statistic is 0.1076 which is above the 0.05 threshold for significance (though only slightly), indicating there is not strong statistical evidence of seasonality. For this reason, I will not de-season the renewable energy data. 
 
-RE_seas_comp <- array(0,nobs)
-for (i in 1:nobs)(
-  RE_seas_comp[i] = beta0_reS + beta1_reS %*% RE_dummies[i,]
-)
-
-ggplot(energy_clean, aes(x=Month, y=`Total Renewable Energy Production`))+
-  geom_line(color="blue")+
-  geom_line(aes(y=RE_seas_comp), color="orange")
-
+```{r}
 #Hydroelectric
 hydro_dummies <- seasonaldummy(ts_energy[,3])
 
 hydro_seasMeans <- lm(energy_clean$`Hydroelectric Power Consumption` ~hydro_dummies)
 summary(hydro_seasMeans)
+
 
 beta0_hydroS <- hydro_seasMeans$coefficients[1]
 beta1_hydroS <- hydro_seasMeans$coefficients[2:12]
@@ -238,64 +230,48 @@ for (i in 1:nobs)(
   hydro_seas_comp[i] = beta0_hydroS + beta1_hydroS %*% hydro_dummies[i,]
 )
 
+#Visualize the original data and the seasonal component
 ggplot(energy_clean, aes(x=Month, y=`Hydroelectric Power Consumption`))+
   geom_line(color="blue")+
   geom_line(aes(y=hydro_seas_comp), color="orange")
 ```
 
+**Hydroelectric Seasonal Means Model: Interpretation**
+The F-statistic p-value is <0.001 suggesting there is seasonality present. The following analysis on seasonality will only be performed on the hydroelectric consumption data. 
 
 ### Q7
 Use the regression coefficients from Q6 to deseason the series. Plot the deseason series and compare with the plots from part Q1. Did anything change?
 
 ```{r}
-
 #Removing seasonal component
-
-deSeas_biomass <- energy_clean$`Total Biomass Energy Production` - biomass_seas_comp
-deSeas_RE <- energy_clean$`Total Renewable Energy Production` - RE_seas_comp
 deSeas_hydro <- energy_clean$`Hydroelectric Power Consumption`- hydro_seas_comp
 
 #Plot 
-ggplot(energy_clean, aes(x=Month, y=`Total Biomass Energy Production`))+
-  geom_line(color="blue")+
-  geom_line(aes(y=deSeas_biomass), color="orange")+
-  labs(color = "legend")
-
-ggplot(energy_clean, aes(x=Month, y=`Total Renewable Energy Production`))+
-  geom_line(color="blue")+
-  geom_line(aes(y=deSeas_RE), color="orange")
-
 ggplot(energy_clean, aes(x=Month, y=`Hydroelectric Power Consumption`))+
   geom_line(color="blue")+
   geom_line(aes(y=deSeas_hydro), color="orange")
 
-
-
 ```
-
+#### Q7 Answer: 
+Yes, the deseason series is different from the original data. In particular there is less of a constant increase/decrease in the line, as well as the data moving lower on the plot ranging from ~-100 to ~100 in the deseason-ed series, whereas the original series ranges from ~150 to ~350. 
 
 ### Q8
 Plot ACF and PACF for the deseason series and compare with the plots from Q1. Did the plots change? How?
 
 ```{r}
-#Biomass 
-acf(deSeas_biomass, lag.max=40)
-#acf(energy_clean$`Total Biomass Energy Production`, lag.max = 40)
-pacf(deSeas_biomass, lag.max=40)
-#pacf(energy_clean$`Total Biomass Energy Production`, lag.max = 40)
-
-#Renewable Energy
-acf(deSeas_RE, lag.max=40)
-#acf(energy_clean$`Total Renewable Energy Production`, lag.max = 40)
-pacf(deSeas_RE, lag.max=40)
-#pacf(energy_clean$`Total Renewable Energy Production`, lag.max = 40)
-
-
 #Hydroelectric
 acf(deSeas_hydro, lag.max=40)
 #acf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
 pacf(deSeas_hydro, lag.max=40)
-#pacf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
+pacf(energy_clean$`Hydroelectric Power Consumption`, lag.max = 40)
 
 ```
+
+
+
 #### Q8 Answer: 
+
+Yes, the plots changed significantly -- in the original ACF the seasonality was clear, with the correlations changing from positive to negative or simply lower to higher. The deseasoned plot no longer has this effect and instead just shows the declining trend. The PACFs look very different as well, specifically the original PACF had larger correlations (both more positive and more negative) even near lag 40. The deseasoned PACF does not have significant correlations (those that extend beyond the blue line) after lag 10. 
+
+
+

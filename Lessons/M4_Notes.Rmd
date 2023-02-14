@@ -1,0 +1,86 @@
+---
+Author: Maggie O'Shea
+---
+
+# M4: Missing Data and Outliers
+
+## Overview
+  - Detecting missing data/outliers considered "filtering" step
+  - Missing data can occur for variety of reasons (ex: breakdown of automatic counters) 
+
+## Missing Data: 
+  - Replaced by Local Mean
+      - Replace missing data in a variable by the average of two adjacent observations 
+          - Interpolation
+          - Preferred method for time series
+  - Replaced by Series Mean: 
+      - Replaces missing values with the mean for the entire series
+          - Not as good an approach for a dataset with trend/seasonality
+  - Missing Data in R: 
+      - Inspect missing data in R: 
+          - is.na(): finding and creating missing values 
+          - na.action() 
+              - this is an argument within other functions which tells the function what to do with NAs (exclude, etc.)
+          - na.omit, na.exclude: returns object with observations removed that are NA 
+          - na.pass : returns the object unchanged
+          - na.fail: returns the object only if it contains no missing values 
+          - Summary function will also report number of NAs 
+      - Often data from online is missing data, but those are omitted 
+          - (ex: missing January 2021, so Jan removed from dataset --> join with list of full dates and you will get the NAs and can interpolate to fill them in)
+
+## Outliers 
+  - Types of outliers: 
+      - Additive Outlier (AO)
+      - Level Shift (LS) 
+      - Temporary Change (TC) 
+      
+### Additive Outlier
+  - Def'n: Surprising large or small value 
+  - Affects a single observation, subsequent observations unaffected 
+  - Type of outliers occurs as a result of a mistake made by observer, or a random effect (ex: short term shock, strike, etc.)
+
+### Level Shift Outlier
+  - Def'n: Refers to a more permanent change in the time series level starting at a given time period 
+  - All observations after the outlier move to a new level 
+  - Can occur due to changes in concepts/definitions/technology/methods of data collection
+  - Can also occur because of changes in economic behavior, social traditions, or a policy intervention 
+  - This outlier cannot be fixed 
+      - Instead, just use only new level for time series estimation 
+      - If you don't have enough data at the new level, you can move the past data to the new level then model because it shouldn't have (or you assume it didn't) shift anything else, just the level  
+      - Best case, however, is to remove the past that's at a different level 
+
+### Temporary/Transient Change Outlier 
+  - Def'n: outliers similar to LS, but effect of the outlier diminishes over the subsequent observations 
+  - Eventually the series returns to its normal level 
+  - TC may occur due to deviations from average monthly weather conditions 
+      - Ex: if weather changes drastically, energy consumption may rise or fall but when weather goes back so does energy 
+  - This will impact the trend component 
+
+### Modeling with Outliers 
+  - Presence of outliers can affect the model identification and estimation 
+      - presence of outliers close to the end of observation period can have *serious* impact on forecasting performance of model 
+      - **but** Outliers may contain information about unusual events, so they are important part of the data 
+      
+### Methods for detecting outliers [especially additive outliers]
+  - Iterative Process
+      - Check most extreme value for being an outlier
+          - If it is, remove it
+      - Check for the next extreme value using new, smaller sample
+      - Repeat
+  - When data removed, still have to fill in gap because can't have missing data --> interpolation!
+  - Interquartile Range --> if observation is larger(or smaller) than 3 * SD (or -3 * D) then the test says they are outliers 
+      - R: package "outliers"
+          - outlier(x, opposite = FALSE, logical = False)
+          - rm.outlier (x) --> this replaces the outlier with the local mean
+          - tests for ouliter: 
+              - dixon.test; chisq.out.test (chi-squared outlier test), grubbs.test 
+
+  
+      
+      
+      
+      
+      
+      
+      
+  
