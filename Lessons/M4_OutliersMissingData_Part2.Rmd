@@ -41,7 +41,7 @@ Today we will work with wind speed data.
 #Importing time series data from text file#
 wind_data <- read.csv(file="../Data/Wind_Speed_PortArthurTX_Processed.csv",header=TRUE,stringsAsFactors = TRUE)
 
-#creating data object
+#creating date object with lubridate package
 wind_data$DATE <- ym(wind_data$DATE)
 
 ```
@@ -106,19 +106,46 @@ Additional info on decompose()
 
 ```{r}
 #Ex1: Using R decompose function decompose the wind data in seasonal, trend and random
+##NOTE: The default is additive 
 
+add_decompose <- decompose(clean_wind_data, type =c("additive"))
+mult_decompose <- decompose(clean_wind_data, type =c("multiplicative"))
+
+plot(decompose(clean_wind_data, type =c("additive")))
+plot(decompose(clean_wind_data, type =c("multiplicative")))
 
 #Ex2: Store the three component in separate vector
+wind_add_random <- add_decompose$random   
+wind_add_seasonal <- add_decompose$seasonal   
+wind_add_trend <- add_decompose$trend  
+
+wind_mult_random <- mult_decompose$random   
+wind_mult_seasonal <- mult_decompose$seasonal   
+wind_mult_trend <- mult_decompose$trend  
   
 
 #Ex3: Create one data frame with all three vector and the Date columns from wind_data
+DecompWindAdd_df <- data.frame(date=full_wind_data$Date,
+                               random=as.numeric(wind_add_random), 
+                               seasonal = as.numeric(wind_add_seasonal), 
+                               trend = as.numeric(wind_add_trend))
 
+DecompWindMult_df <- data.frame(date=full_wind_data$Date,
+                               random=as.numeric(wind_mult_random), 
+                               seasonal = as.numeric(wind_mult_seasonal), 
+                               trend = as.numeric(wind_mult_trend))
 
+ggplot(DecompWindAdd_df, aes(x=date, y=random))+
+  geom_line()+
+  geom_line(y=DecompWindMult_df$random, color = "Orange")
 #Ex4: Inspect the data frame using head() and tail()
+head(DecompWindAdd_df, 10)
+tail(DecompWindAdd_df, 10)
 
-
+head(DecompWindMult_df, 10)
+tail(DecompWindMult_df, 10)
 # Discuss the results
-
+#The results show that there are 6 values missing at the head and tail for trend and random, which makes sense given how these are calculated. In comparing additive vs. multiplicative, the trend/seasonal/observed plots do not change significantly. However, the random component does. The mutliplicative series does not have the random values centered at 0, but instead around 1. The values do have a smaller range, however, between ~1.25 and ~0.75. The Additive model's random component is centered at zero but ranges from less than -1 to greater than 1. 
 ```
 
 

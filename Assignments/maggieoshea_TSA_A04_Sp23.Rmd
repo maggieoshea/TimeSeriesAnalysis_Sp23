@@ -31,7 +31,7 @@ library(tseries)
 library(base)
 library(outliers)
 library(tidyverse)
-
+library(dplyr)
 ```
 
 ## Questions 
@@ -41,9 +41,11 @@ Consider the same data you used for A3 from the spreadsheet "Table_10.1_Renewabl
 
 ```{r}
 #Importing data set - using xlsx package
-library(xlsx)
-energy_data<- read_xlsx("./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx", skip=12, sheet="Monthly Data", col_names=FALSE)
-read_col_names <- read_xlsx(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
+install.packages("readxl")
+library(readxl)
+library(readxl)
+energy_data<- read_excel("Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx", skip = 12, sheet = "Monthly Data", col_names=FALSE)
+read_col_names <- read_xlsx(path="Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
 colnames(energy_data) <- read_col_names
 
 energy_clean <- energy_data%>%
@@ -65,7 +67,9 @@ Difference the "Total Renewable Energy Production" series using function diff().
 Try differencing at lag 1 only once, i.e., make `lag=1` and `differences=1`. Plot the differenced series Do the series still seem to have trend?
 
 ```{r}
-
+diffseries <- diff(energy_clean$`Total Renewable Energy Production`, lag = 1, differences = 1)
+diff_ts <- ts(diffseries, frequency = 12, start = c(1973, 1, 1))
+plot(diff_ts)
 ```
 
 ### Q2
@@ -75,7 +79,21 @@ Now let's compare the differenced series with the detrended series you calculate
 Copy and paste part of your code for A3 where you compute regression for Total Energy Production and the detrended Total Energy Production
 
 ```{r}
+#Detrend Renewable Energy
+nobs <- nrow(energy_clean) 
+t <- 1:nobs 
+linearTrend_renew<- lm(energy_clean$`Total Renewable Energy Production` ~ t)
+summary(linearTrend_renew)
+beta0_renew <- linearTrend_renew$coefficients[1]
+beta1_renew <- linearTrend_renew$coefficients[2]
+detrend_RE <- energy_clean$`Total Renewable Energy Production` - (beta0_renew+beta1_renew*t)
 
+#Compare Plots
+par(mfrow = c(1,2))
+  plot(diff_ts,type="l",col="blue")
+  abline(h=mean(diff_ts),col="red")
+  plot(detrend_RE,type="l",col="blue")
+  abline(h=mean(detrend_RE),col="red")
 ```
 
 ### Q3
@@ -83,8 +101,15 @@ Create a data frame with 4 columns: month, original series, detrended by Regress
 
 ```{r}
 #Data frame - remember to not include January 1973
+#Removing first observation (January 1973)
+detrend_RE_v2 <- detrend_RE[-1];
+orig_Data <- energy_clean[-1,]
 
-
+detrendanddiff_v1 <- data.frame(orig_Data, detrend_RE_v2, diffseries)
+fulldataframe <- detrendanddiff_v1%>%
+  rename(
+         "Detrended_Series" = detrend_RE_v2, 
+         "Differenced_Series" = diffseries)
 ```
 
 ### Q4
@@ -92,6 +117,14 @@ Using ggplot() create a line plot that shows the three series together. Make sur
 
 ```{r}
 #Use ggplot
+ggplot(fulldataframe, aes(x=Month))+
+  geom_line(aes(y=Total.Renewable.Energy.Production, color="Original Data"))+
+  geom_line(aes(y=Detrended_Series, color = "Detrended Series"))+
+  geom_line(aes(y=Differenced_Series, color ="Differenced Series"))+
+  guides(fill = guide_legend(title = "Series"))+
+  labs(title="Total Renewable Energy Production 1973-2023: 
+  Original Data, Detrended, and Differenced Series")
+  
 
 ```
 
@@ -101,23 +134,46 @@ Plot the ACF for the three series and compare the plots. Add the argument `ylim=
 
 ```{r}
 #Compare ACFs
+par(mfrow = c(1,3))
+  acf(fulldataframe$Total.Renewable.Energy.Production, ylim=c(-0.5,1))
+  acf(fulldataframe$Detrended_Series, ylim=c(-0.5,1))
+  acf(fulldataframe$Differenced_Series, ylim=c(-0.5,1))
 
 ```
 
+### Q5 Answer: 
+The differenced series appears to have removed the trend and shows instead correlations that very from positive to negative and a few high correlations at lag 12 and 24. 
 
 ### Q6
-Compute the Seasonal Mann-Kendall and ADF Test for the original "Total Renewable Energy Production" series. Ask R to print the results. Interpret the results for both test. Whats the conclusion from the Seasonal Mann Kendall test? What's the conclusion for the ADF test? Do they match what you observed in Q2? Recall that having a unit root means the series has a stochastic trend. And when a series has stochastic trend we need to use a different procedure to remove the trend.
+Compute the Seasonal Mann-Kendall and ADF Test [test stochastic trend] for the original "Total Renewable Energy Production" series. Ask R to print the results. Interpret the results for both test. Whats the conclusion from the Seasonal Mann Kendall test? What's the conclusion for the ADF test? Do they match what you observed in Q2? Recall that having a unit root means the series has a stochastic trend. And when a series has stochastic trend we need to use a different procedure to remove the trend.
 
 ```{r}
+#Null hypothesis is that data has a unit root
+print(adf.test(ts_energy[,1],alternative = "stationary"))
+#P<0.01 which indicates that we reject the null, suggesting the series is stationary. 
 
+#SMK: 
+SMKtest <- SeasonalMannKendall(ts_energy[,1])
+print(SMKtest)
+#p<0.01 indicates that there is a trend, as it rejects the null that there is no trend. 
 ```
+
+#### Q6 Answer
+The conclusion from this ADF tests (p<0.01) suggests that we should reject the null and thus that the series is stationary. The Seasonal Mann Kendall, in contrast, suggests that there is a trend (because p<0.01 and rejects the null that there is not a trend). The ADF test does not match my expectation for the series as the ACF plots seem to show a trending series. 
 
 ### Q7
 
 Aggregate the original "Total Renewable Energy Production" series by year. You can use the same procedure we used in class. Store series in a matrix where rows represent months and columns represent years. And then take the columns mean using function colMeans(). Recall the goal is the remove the seasonal variation from the series to check for trend. 
 
 ```{r}
+#Group data in yearly steps instances
+energy_matrix <- matrix(ts_energy[,1],byrow=FALSE,nrow=12)
+energy_year <- colMeans(energy_matrix)
+years<- 1973:2022
 
+energy_yearly <- data.frame(years, energy_year)%>%
+  rename("MeanYearlyRenewableProduction" = energy_year,
+         "Year" = years)
 ```
 
 ### Q8
@@ -125,6 +181,15 @@ Aggregate the original "Total Renewable Energy Production" series by year. You c
 Apply the Mann Kendal, Spearman correlation rank test and ADF. Are the results from the test in agreement with the test results for the non-aggregated series, i.e., results for Q6?
 
 ```{r}
+print(adf.test(energy_yearly[,2],alternative = "stationary"))
 
+summary(MannKendall(energy_yearly[,2]))
+
+sp_rho=cor.test(energy_yearly[,2],years, method="spearman")
+print(sp_rho)
 ```
 
+
+
+#### Q8 Answer: 
+The results from the ADF test on the yearly means of renewable energy production is the opposite of the earlier test (p = 0.99). This suggests that we cannot reject the null hypothesis and thus there is a trend. The results of the Mann Kendall test align with the seasonal mann kendall results (p<0.01) and suggest, as the SMKtest suggested, that there is a trend. The spearman's rank correlation had a p-value of <0.01 which suggests that there is a strong monotonic relationship between renewable energy and time (year). Because rho is positive 0.99, this suggests that there is a positive trend - when time increases, renewable energy production increases. 
