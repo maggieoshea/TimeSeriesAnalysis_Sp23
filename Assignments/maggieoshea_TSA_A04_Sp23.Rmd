@@ -142,24 +142,23 @@ par(mfrow = c(1,3))
 ```
 
 ### Q5 Answer: 
-The differenced series appears to have removed the trend and shows instead correlations that very from positive to negative and a few high correlations at lag 12 and 24. 
+The differenced series appears to have removed the trend and shows instead correlations that very from positive to negative and a few high correlations at lag 12 and 24. In contrast, the detrended series still has a trend, though does show more seasonality than the original ACF. Thus, the differenced series was more effective in eliminating the trend altogether. 
 
 ### Q6
-Compute the Seasonal Mann-Kendall and ADF Test [test stochastic trend] for the original "Total Renewable Energy Production" series. Ask R to print the results. Interpret the results for both test. Whats the conclusion from the Seasonal Mann Kendall test? What's the conclusion for the ADF test? Do they match what you observed in Q2? Recall that having a unit root means the series has a stochastic trend. And when a series has stochastic trend we need to use a different procedure to remove the trend.
+Compute the Seasonal Mann-Kendall and ADF Test for the original "Total Renewable Energy Production" series. Ask R to print the results. Interpret the results for both test. Whats the conclusion from the Seasonal Mann Kendall test? What's the conclusion for the ADF test? Do they match what you observed in Q2? Recall that having a unit root means the series has a stochastic trend. And when a series has stochastic trend we need to use a different procedure to remove the trend.
 
 ```{r}
 #Null hypothesis is that data has a unit root
 print(adf.test(ts_energy[,1],alternative = "stationary"))
-#P<0.01 which indicates that we reject the null, suggesting the series is stationary. 
+
 
 #SMK: 
 SMKtest <- SeasonalMannKendall(ts_energy[,1])
 print(SMKtest)
-#p<0.01 indicates that there is a trend, as it rejects the null that there is no trend. 
 ```
 
 #### Q6 Answer
-The conclusion from this ADF tests (p<0.01) suggests that we should reject the null and thus that the series is stationary. The Seasonal Mann Kendall, in contrast, suggests that there is a trend (because p<0.01 and rejects the null that there is not a trend). The ADF test does not match my expectation for the series as the ACF plots seem to show a trending series. 
+The conclusion from this ADF tests (p<0.01) suggests that we should reject the null and thus that the series is stationary.This does not align with what the ACF plots visually show, and examining the plots from Q2, provides additional evidence that the detrending did not remove the trend. The Seasonal Mann Kendall, in contrast, suggests that there is a trend (because p<0.01 and rejects the null that there is not a trend).  This confirms that there is a trend and thus the plots in Q2 show that, given that there is statistical evidence of a trend, based on the plots in Q2 suggests that differencing was the better strategy to remove the trend. 
 
 ### Q7
 
@@ -192,4 +191,4 @@ print(sp_rho)
 
 
 #### Q8 Answer: 
-The results from the ADF test on the yearly means of renewable energy production is the opposite of the earlier test (p = 0.99). This suggests that we cannot reject the null hypothesis and thus there is a trend. The results of the Mann Kendall test align with the seasonal mann kendall results (p<0.01) and suggest, as the SMKtest suggested, that there is a trend. The spearman's rank correlation had a p-value of <0.01 which suggests that there is a strong monotonic relationship between renewable energy and time (year). Because rho is positive 0.99, this suggests that there is a positive trend - when time increases, renewable energy production increases. 
+The results from the ADF test on the yearly means of renewable energy production is the opposite of the earlier test (p = 0.99). This suggests that we cannot reject the null hypothesis and thus there is a trend. This aligns more with the ACF plot which shows a trend, and thus suggests that the seasonality in the data was impacting the results of the original ADF. The results of the Mann Kendall test align with the seasonal mann kendall results (p<0.01) and suggest, as the SMKtest suggested, that there is a trend. The spearman's rank correlation had a p-value of <0.01 which suggests that the correlation is not zero and there is, therefore, a statistically significant correlation between renewable energy production and time. 

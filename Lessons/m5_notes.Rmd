@@ -1,0 +1,102 @@
+---
+Author: Maggie O'Shea
+---
+
+# M5: ARIMA Models
+
+## Learning Goals: 
+  - Discuss Models for Stationary Time Series 
+      - Autoregressive Model (ARM) --> AR = Autoregressive 
+      - Moving Average Model (MA)  --> MA = Moving Average
+      - ARMA Model
+      - ARIMA Model 
+          - I in ARIMA stands for integrated
+  
+## Introduction: 
+  - ARMA or ARIMA Models Basic Concepts 
+      - Traditional Box-Jenkins Models 
+          - To model a time series with the Box-Jenkins approach, the series has to be stationary 
+          - Recall: series is stationary if tends to wonder more or less uniformly about some fixed level 
+          
+## Review: Achieving Stationarity
+      - Stationary means that the mean of the series is not changing over time
+      - Is the trend stochastic or deterministic?
+          - First, Run the tests
+          - If stochastic: use differencing
+          - If deterministic: Use regression
+      - Check if Variance changes with time
+          - If yes: make it constant with log transformation 
+          
+## Auto Regressive Models 
+  - Simplest family of models are autoregressive 
+  - Generalize the idea of regression to represent the linear dependence between a dependent variable and explanatory
+      - My regressors are previous observations of my own series (hence: "auto")
+      - Equation: y[t] = c + theta*y[t-1] + a[t]
+          - c = beta0 and theta = beta1
+          - c and theta are constants to be determined and a[t] are i.i.d (independent, identically distributed random variables) --> mean of zero 
+  - First Order Autoregressive process: just one term so it would be y[t] = c + theta*y[t-1] + a[t]
+  - From the unit root test, the condition -1 < theta < 1 is necessary for process to be stationary, but why?
+  - Linear dependence can be generalized so that the present value of the series (yt) depends on previous lags 
+      - The coefficient on first yt-1 is going to be larger than the coefficient on yt-2, etc. and you want it to get so small that it's not worth including 
+
+### ACF and PACF for AR Process
+  - For AR models, ACF will decay exponentially with time 
+  - The PACF will identify the order of the AR model 
+      - PACF we are looking for cutoffs 
+      
+## Moving Average Models 
+  - [AR vs.] Moving Average Models: 
+      - The AR Process have infinite non-zero autocorrelation coefficients that decay with the leg 
+          - Therefore we say AR process have a relatively 'long memory'
+          - T depends on t-1, t-2 --> process that is carrying a lot of information from the past
+      - Moving Average has a 'short memory' 
+          - MA processes are a function of a finite and generally small number of its past residuals
+          - MA is variation around a certain mean 
+  - Moving Average Model Equations: 
+      - First order moving average process [MA(1)] is defined by: 
+          - yt = /mu\ + at - theta*a[t-1]
+              - Moving average relies on past residuals 
+              - mu is level of series (intercept) and sometime you remove this level so it's just: 
+                  yt = at - theta*a[t-1]
+                      - mu therefore is 0 
+          - this process will always be stationary for any value of theta 
+              - Because if you take the expected value of yt will be the mean mu 
+  - MA(q) Process Basic Concepts 
+      - A q-order moving average process, denoted by MA(q) takes form: 
+          - y[t] = mu + a[t] - theta1*x*a[t-1] - ...+ thetaq*x*a[t-q]
+              - *x* means multiply 
+          - Assume that error terms are i.i.d 
+  - ACF and PACF for MA Process 
+      - For MA models ACF will identify the order of the MA model (q)
+      - For MA models, PACF will decay exponentially (like the ACF for AR models)
+      - In the ACF< when you see a negative correlation at lag 1, MA is the model that works best 
+      
+## Summary
+  - AR Process
+      - Series current values depend on its own previous values
+      - AR(p) - current values depend on its own p-previous values
+      - p is order of AR process
+  - MA Process
+      - Current deviation from mean depends on previous deviations 
+      - MA(q) - current deviation depends on q previous deviations
+      - q is order of MA process 
+  - *but* we also have ARMA Process
+      - Takes into account both of the above factors when making predictions 
+
+## ARMA Process
+  - The simplest process, the ARMA(1,1) is written as: 
+      - y[t] = fi1*x*y[t-1] +at - theta*x*a[t-1]
+          - where abs(fi) <1 for process to be stationary
+  - the ACF and PACF of ARMA processes are result of superimposing the AR and MA properties 
+      - In the ACF initial coefficinets depend on MA order and later a decay dictated by AR part
+      - In PACF initial values dependent on ... [SEE SLIDE]
+      - Very difficult to see this in the plots --> often 1,1 order model if you can't tell 
+      
+  
+          
+          
+          
+          
+          
+          
+          
