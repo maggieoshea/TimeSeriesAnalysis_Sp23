@@ -2,7 +2,7 @@
 Author: Maggie O'Shea
 ---
 
-# M5: ARIMA Models
+# M5 (continued): ARIMA Models
 
   - Auto-Regressive Integrated Moving Average
       - "I" just means the need for differencing 
@@ -51,7 +51,8 @@ Author: Maggie O'Shea
           - If Q=1: a[t-s] is added to equation 
               - It's usually one or the other (MA or AR) so P+Q should not be more than one 
           - **After Differencing** plot ACF and PACF
-    
+ 
+      - Sometimes seasonality is not constant over time --> seasonal arima model?   
     
     
     Assignemnt due march 10: 

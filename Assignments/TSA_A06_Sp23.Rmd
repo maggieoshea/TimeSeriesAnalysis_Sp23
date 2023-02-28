@@ -26,7 +26,8 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 
 ```{r}
 #Load/install required package here
-
+install.packages("sarima")
+library(sarima)
 ```
 
 
