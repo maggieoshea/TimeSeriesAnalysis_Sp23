@@ -121,6 +121,7 @@ deseasonal_residential_price <- seasadj(decompose_residential_price)
 # Find out how many time we need to difference
 n_diff <- ndiffs(deseasonal_residential_price)
 cat("Number of differencing needed: ",n_diff)
+#Says need 1 differencing 
 
 #Lets difference the series once at lag 1 to remove the trend.
 deseasonal_residential_price_diff <- diff(deseasonal_residential_price,differences=1,lag=1)
@@ -153,9 +154,11 @@ I will not cover the hypothesis test associated with deterministic and stochasti
 # Find out how many time we need to difference
 ns_diff <- nsdiffs(ts_electricity_price[,"Residential"])
 cat("Number of seasonal differencing needed: ",ns_diff)
+#This says yes, and you put lag = 12 and differences =1 because this says you are differencing your series once at lag 12 (the seasonal lag)
 
 #Lets difference the series once at lag 12 to remove the seasonal trend.
 residential_price_seas_diff <- diff(ts_electricity_price[,"Residential"],lag=12, differences=1)
+
 residential_price_trend_diff <- diff(ts_electricity_price[,"Residential"],lag =1, differences=1) #diff done on orig series
 residential_price_both_diff <- diff(residential_price_trend_diff,lag =12, differences=1)
 
@@ -166,7 +169,6 @@ Acf(ts_electricity_price[,"Residential"],lag.max=40,main="Residential",ylim=c(-1
 Acf(residential_price_seas_diff,lag.max=60,main="Seasonal-Differenced Residential",ylim=c(-1,1))
 Acf(residential_price_trend_diff,lag.max=60,main="Trend-Differenced Residential",ylim=c(-1,1))
 
-par(mfrow=c(1,1))
 Acf(residential_price_both_diff,lag.max=60,main="Twice-Differenced Residential",ylim=c(-1,1))
 
 #Comparing PACFs
@@ -195,6 +197,7 @@ Now let's look at seasonal lags only (12,24,36,48). ACF has one spike at 12 and 
 ```{r}
 
 SARIMA_manual <- Arima(ts_electricity_price[,"Residential"],order=c(1,1,1),seasonal=c(0,1,1),include.drift=FALSE)
+#Drift = False because differenced series twice so not allowing a constant (mu)
 print(SARIMA_manual)
 
 par(mfrow=c(1,3))

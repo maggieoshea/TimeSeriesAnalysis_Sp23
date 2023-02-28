@@ -1,0 +1,116 @@
+---
+Author: Maggie O'Shea
+---
+
+# M6: Seasonal ARIMA Models
+
+  - Modeling with Seasonality 
+    - Adding terms in model to represent seasonality
+    - Seasonal ARIMA models rely on seasonal lags and difference to fit the seasonal pattern
+        - 3 additional parameters 
+            - P: number of seasonal autoregressive terms
+            - D: number of seasonal differences
+            - Q: number of moving average terms 
+        - Conceptually: seasonal part says whatever happened in april of last year is related to what happens april of this year 
+    - two terms for differencing: d (non-seasonal) and D (seasonal) 
+        - d+D should never be more than 2
+        - D should never be more than 1
+    - Seasonal AR and MA terms 
+        - If P=1: y[t-s] is added to equation --> autoregressive
+        - If Q=1: a[t-s] is added to equation --> moving average
+        - P+Q should not be more than one
+            - Usually going to be one or the other
+    - *After* Differencing plot ACF and PACF
+        - P=1: Positive spikes in ACF at lag 12, 24, 36.. and single positive spike in PACF at lag 12
+        - Q=1: Negative spike in ACF at lag 12, and negative spikes in PACF at lag 12, 24, 36...
+    - SARIMA Model Examples: 
+        - SARIMA(1,0,1)(1,0,0) -> SARIMA(p,d,q)(P,D,Q)
+            y[t]=mu + ARcoeff1* y[t-1] + errorterm-MAcoeff1 * a[t-1] + SARcoeff12*y[t-12]
+                - mu is a term that refers to the level 
+                    - if SARIMA(1,*1*,0)(0,*1*,0) then no mu
+  - Periodic AR Model (PAR)
+      - PAR(p) where p is the order of autoregressive model 
+          - similar to having one AR model for each season of the year 
+          
+## ARIMA Model Summary
+    - AR(p), MA(q), ARMA(p,q) - stationary and non-seasonal process
+        - AR(3) refers to the autoregressive component 
+    - ARIMA (p,d,q) -- nonstationary and non-seasonal process
+        - The integrated part can handle the non-stationarity
+        - The non-stationarity can be deterministic or stochastic
+    - Seasonal ARIMA - non-stationarity and seasonal process 
+        
+## Fitting ARIMA Models 
+  - How to Specify Model Orders?
+      - Start with non-seasonal part
+          - Step 1: Run stationary test
+              - To identify stochastic trend use ADF
+                  - If ADF tells you non-stationary with unit root then you know you need differencing
+                  - IF ADF says stationary, you need to worry about deterministic trend and run Mann-Kendall
+              - To identify determinist trend using Mann Kendall
+         - Step 2: If either trend is present, specify d=1
+            - It may be that you need differencing more than once to remove trend 
+            - To find out if d=1 is enough, run tests again on differenced series 
+            - Repeat process until there is no trend on data (d=<2) 
+            - ndiffs (R function) tells you how many times you need to difference your series 
+                - important to specify max.d=2 because you know d=<2 
+                    - ndiffs(x,alpha=0.05, test=c("kpss"...), max.d=2)
+                        - test "adf"
+        - Step 3: Plot ACF and PACF and look at behavior of non-seasonal lags
+            - Look at non-seasonal lags (1-11, not 12 etc)
+            - If ACF cuts off then MA process, if trails off (slow decay) then AR process
+                - ACF gives you the value of q
+            - If PACF cuts off AR process, if trails off (slow decay) MA Process
+                - PACF gives you value of p 
+            - Do this for *differenced* series 
+        - Step 4: Check if seasonal differencing is needed
+            - Seasonality can be verified by plotting your time series or by spikes at equally spaced lags (multiples of lag s) on ACF and PACF
+            - If still not sure about the existence of seasonal component you can run statistical tests 
+            - Seasonal difference is needed if the seasonal pattern is strong/stable over time 
+            - Function in R returns number of seasonal differences needed to achieve stationarity: 
+                - nsdiffs(x, m=frequency(x), test, max.D=1)
+        - Step 5: Again ACF and PACF but now look only at seasonal lags
+            - ACF 
+                - Multiple Spikes at seasonal lags (12, 24, etc.) -- SAR process
+                - Single spike (SMA Process) 
+                - ACF gives you value of Q 
+            - PACF
+                - Multiple spikes at seasonal lag (SMA process) 
+                - Single Spike (SAR process) 
+                - PACF gives value of P 
+  - Rules for ARIMA Modeling
+      - If series have positive autocorrelations out to a high number of lags - then it probably needs to be differenced more than once
+      - If lag1 autocorrelation is zero or negative or autocorrelations are small with no pattern, then series does not need a higher order of differencing
+      - If lag1 autocorrelation is -0.5 or more negative, the series may be overdifferenced 
+      - No more than 1 order of seasonal differencing D<1
+      - No more than 2 orders of total differencing
+          - Seasonal(D) + nonseasonal(d) =<2 
+          - If autocorrelation at seasonal period is positive, consider adding SAR term to model 
+          - If autocorrelation at seasonal period is negative consider adding SMA term
+          - Avoid mixing SAR and SMA terms in the same model 
+              - P + Q =<1 
+  - Covariates in ARIMA -- ARIMAX model 
+      - ARIMAX --> x stands for exogenous 
+      - xreg argument in arima function in R --> xreg = "exogenous_variable_columnname"
+      - exogenous predictor such as temperature which helps predict energy use 
+  - Constants in ARIMA models in R
+      - Function Arima() takes 3 constant-related arguments
+          - include.mean -- only has effect when d=0 and is true by default
+          - include.drift -- allows mu doesn't equal zero, when d=1 and is false by default
+          - include.constant -- more general, if TRUE will set include.mean=TRUE if d=0 and include.drift=TRUE if d=1
+          - for d>1 no constant is allowed
+      - Function auto.aria=FALSE is specified then the constant is only allowed when d=0 
+      - arima() function only has include.mean function (arima() is different from Arima())
+      
+      
+      
+      
+      
+      
+      
+            
+            
+            
+        
+        
+        
