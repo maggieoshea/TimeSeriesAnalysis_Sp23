@@ -1,0 +1,62 @@
+---
+Author: Maggie O'Shea
+---
+
+# M5: ARIMA Models
+
+  - Auto-Regressive Integrated Moving Average
+      - "I" just means the need for differencing 
+      - ARIMA (p, d, q) --> p: number of autoregressive terms, d: number of differences (non-seasonal), q: order of moving average 
+          - d --> how many times you have to differentiate your series to de-trend (?) 
+  - Drawbacks
+      - No systematic approach for identification and selection 
+          - identification is mainly trial and error 
+          - Look at AIC and residual series 
+              - Residuals should look like white noise (mean of zero, no correlation) 
+              - If need to run model again, then find new values for d, p, q 
+  - Fit ARIMA models in R 
+        - arima() from package 'stats'
+        - arima(x, order = c(p, d, q), seasonal = c(P, D, Q), xreg = (other variable that you think has an impact on your dataset is put here), include.mean) 
+            - P, D, Q are similar to p, d, and q but for seasonal component only 
+            - include.mean --> when you differencing the dataset, the mean is close to zero but not exactly zero 
+                - You can include a drift term which is the mean that's very close to zero but not exactly zero and that would be the new level of your series 
+    
+## M6, part 2: Seasonal Arima Models 
+
+  - SARIMA --> Seasonal ARIMA Model 
+
+### Modeling with Seasonality
+  - 2 ways to deal with seasonality known so far
+      - Linear regression on seasonal dummies 
+      - computing and subtracting the average of each month
+      - (also in R: use decompose )
+      - Drawbacks
+          - Need to add seasonality back after fitting model 
+          - Seasonal component is modeled as 'constant' over time 
+  - Seasonal Models
+      - Still identify the seasonal component but do not need to remove it from the series (and then do not have to add it back at the end)
+      - Seasonal ARIMA models rely on seasonal lags and difference to fit the seasonal pattern
+          - The seasonal part of the ARIMA models has 3 additional parameters: 
+              - P: number of seasonal autoregressive terms
+              - D: Number of seasonal differences
+              - Q: number of moving average terms 
+      - Differencing: 
+          - You don't want to difference your model more than once, but now can difference at seasonal lag
+              - If d=0, and D=1: yt = Yt - Y[t-s]
+              - If d=1, D=1: yt = (Yt-Y[t-1]) - (Y[t-s] - Y[t-s-1])
+          - Note that s is the seasonal period, ex: for monthly data s=12
+          - D should never be more than 1, and (d+D) should never be more than 2
+      - What about seasonal AR and MA terms? (P and Q) 
+          - If P = 1: y[t-s] is added to the equation 
+          - If Q=1: a[t-s] is added to equation 
+              - It's usually one or the other (MA or AR) so P+Q should not be more than one 
+          - **After Differencing** plot ACF and PACF
+    
+    
+    
+    Assignemnt due march 10: 
+      - One slide for motivation/question
+      - One slide for data sources 
+          - https://psl.noaa.gov/data/timeseries/daily/
+          
+      -

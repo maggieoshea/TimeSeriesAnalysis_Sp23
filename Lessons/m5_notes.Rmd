@@ -91,11 +91,26 @@ Author: Maggie O'Shea
       - In the ACF initial coefficinets depend on MA order and later a decay dictated by AR part
       - In PACF initial values dependent on ... [SEE SLIDE]
       - Very difficult to see this in the plots --> often 1,1 order model if you can't tell 
-      
+      - **Order**: The lag where you can spot the cuttoff
+          - Number of consecutive significant correlations
+          - How many elements to add to model (lags) 
+              - Order 1: adding yt-1
+              - Order 2: adding yt-1, yt-2
   
-          
-          
-          
+# Plots
+  - AR you expect *slow* decay on ACF 
+  - AR expect to see trends more clearly (think the smoothness of rolling mean plot), vs MA will have more spikes
+      - MA will be messier, AR will have more curves/smoothness 
+  - AR Order: 
+      - Tell by the PACF, the first correlations that are high before drop off
+  - MA model: negative correlation at lag 1 for ACF (2nd correlation, ACF starts at 0)
+      - When you have a negative autocorrelation at lag 1, MA model 
+  - MA model -- Checking Order
+      - Look at ACF and look at cutoff point (when correlation drops below blue)
+      - Remember that ACF starts at 0, so if second line is above the blue line then the order is 1 
+  - ARMA plots 
+      - Sometimes they cancel out the correlation coefficients, which is why they can have all correlations in PACF fall below blue line 
+      
           
           
           
