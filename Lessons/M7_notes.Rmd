@@ -1,0 +1,134 @@
+---
+Author: Maggie O'Shea
+---
+
+# M7: Forecasting
+
+## Intro to Forecasting
+  - Assume future values of the time series can be estimated from past values of time-series
+  - Simple forecasting techniques
+      - Naive Forecast
+      - Simple Average
+      - Moving average
+      - Weighted Moving Average
+      - Exponential Smoothing
+  - What is Forecasting?
+      - Forecase: statement about the future value of a variable of interest
+          - Forecasts are often used for weather, demand, resource availability 
+      - Shift to using term "projection" because forecast implies predicting exactly what will happen in the future
+  - 2 Aspects of Forecasting
+      - Expected **level** of uncertain variable
+          - The level of uncertain variable may be a function of some structural variation such as trend or seasonal variation 
+      - Accuracy
+          - Related to the potential size of forecast error 
+  - Features common to all forecasts 
+      - Techniques assume some underlying causal system that existed in teh past will persist into future
+          - EX: AR model assumes that t-1 will have an affect on what will happen at t 
+          - or ex: model with covariates whatever the causal relationship between the 2 variables, that will continue
+      - Forecasts are not perfect
+      - Forecasts for groups of items are more accurate than those for individual items 
+          - Variation by individuals doesn't get incorporated into the grouped ones 
+          - The more granular the dataset, the harder it will be to forecast
+      - Forecast accuracy decreases as forecasting horizon increases
+  - Elements of good forecast
+      - timely
+          - can be run/produced in a way that gives it as a resource in the time that it is needed
+              - Ex: if you want a forecast every hour you can't have a model that takes hours to run
+      - accurate
+      - reliable
+      - expressed in meaningful units
+      - Techniques should be simple to understand and use 
+          - the more you add to your model the more complex you are making it - is it worth it?
+      - Cost effective 
+  - Forecasting Process
+      - Determine the purpose of the forecase
+      - Establish a time horizon
+          - How far in time do you want to look at? Week ahead, year ahead, etc.
+      - Obtain, clean, and analyze appropriate data
+          - Dataset will be a function of first 2 steps, some datasets will fit your needs better or worse
+      - Select a forecasting technique
+          - don't use just one, different models can represent different things in the dataset 
+          - Create a set of candidates and find what one is best
+          - In some cases you can make a forecast based on many models 
+              - Bayesian model averaging to find different weights for each model and then combine them
+      - Make the forecast
+      - Monitor the forecast
+  - Forecasting Approaches
+      - Qualitative Forecasting --> can incorporate soft information like
+          - human factors, personal opinions, etc. - things that are difficult to quantify
+      - Quantitative Forecasting --> 
+  - As new data becomes available..
+      - Forecast should be updated with newest values (possible dropping oldest values) and re-computing
+    
+      
+## Simple Averaging Forecast
+  - **Naive Forecast**
+      - Uses a single previous value of a times series as the basis for a forecast
+      - The forecast for a time period is equal to the previous time period value 
+      - Used for: 
+          - Stable time series
+          - Seasonal Variations
+              - For ex: if looking at weather, you would give the value from April 10 last year for weather of April 10 this year (instead of giving the weather from April 9)
+          - Trend
+      - F{t} = A{t-1}
+      - Characteristics
+          - Easy to use, no cost, understandable
+          - Cannot provide high accuracy, no data analysis
+      - Used best for ideal (flat) dataset series, step change series, or gradual change series 
+          - Step change will take while to be accurate again, but once takes the step it will be accurate again
+  - **Averaging Forecast**
+      - Techniques work best when series varies about an average
+      - can smooth variations in the data
+      - Can handle step changes or gradual changes
+      - Techniques: 
+          - Moving average
+          - Weighted moving average
+          - exponential smoothing 
+    - Moving Average
+      - F{t} = sum of n previous observations/n 
+          - n is the number of periods of moving average (order)
+      - Number of datapoints included in average determines model sensitivity
+          - fewer data points used - more responsive 
+              - fewer datapoints meaning the order of the model (3 year moving average vs. 5 year)
+          - more data points used - less responsive
+              - if have 10 year moving average and add 1 year of data, the moving average forecast won't change very much, but if moving average is 2 it likely will have more of an impact
+    - Weighted Moving Average
+      - most recent values in a time series are given more weight in computing a forecast 
+            - choice of weights is somewhat arbitrary and involves some trial and error 
+
+## Exponential Smoothing
+  - Ft = F{t-1} + alpha(A{t-1} - F{t-1})
+        - Ft = forecast for period t
+        - F{t-1} = 
+        - alpha = 
+    - smaller alpha represents a smoother series 
+        - because then the smaller importance you are giving in the error term when calculating the new average
+        - larger values will give more responsive forecast, because you'll adapt faster to new values 
+        - *So* Alpha is how much importance you are giving your error term 
+
+## Associative Forecasting Techniques
+  - Associative techniques are based on the development of an equation that summarizes the effects of predictor variables 
+      - Predictor variables -- variables that can be used to predict values of variable of interest 
+      
+## Forecasting with ARIMA Models 
+  - The use of ARIMA is appropriate when: 
+      - Little or nothing is k nown about the dependent variable being forecasted
+      - the independent variable known to be important cannot be forecasted effectively
+      - All that is needed is a one or two period forecast 
+      - Problems: 
+          - If you are forecasting variable X based on a forecast of Z then you have lots of uncertainty, so you need to be thinking about the variables you are using as regressors because you are introducing more uncertainty in your forecast 
+  - If you don't take seasonality and run the non-seasonal ARIMA 
+  
+## How to check model performance 
+  - Suppose you want to compute forecast error
+  - Forecast can be either in-sample or out-of-sample 
+  - In general out-of-sample forecasts are a better test of how well the model works, as the forecast uses data not included in the estimation of the model 
+      - If you want to get a sense of how the model will perform in the future, reserve a portion of the data as a 'hold-out' set, fit the model, and then compare the forecast to actual observed values
+
+
+# SEE SLIDES 
+
+## Measuring Forecast Accuracy in R
+  - ACF1 -- good way to see if model is a good fit for historical data
+      - Need a lot of observations to look at this value 
+  - 
