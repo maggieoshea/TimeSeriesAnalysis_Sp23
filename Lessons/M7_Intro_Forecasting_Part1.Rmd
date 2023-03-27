@@ -96,7 +96,7 @@ par(mfrow=c(1,1))
 
 ## Decomposing the time series 
 
-The plots from the previous section show the data has a seasonal component. Since we are working with non-seasonal ARIMA, we need to decompose the series and eliminate the seasonality.
+The plots from the previous section show the data hxfas a seasonal component. Since we are working with non-seasonal ARIMA, we need to decompose the series and eliminate the seasonality.
 
 ```{r}
 #Using R decompose function

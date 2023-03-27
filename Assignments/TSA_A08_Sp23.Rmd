@@ -20,7 +20,9 @@ Some packages needed for this assignment: `forecast`,`tseries`,`smooth`. Do not 
 
 ```{r}
 #Load/install required package here
-
+library(forecast)
+library(tseries)
+library(smooth)
 ```
 
 ## Importing and processing the data set
