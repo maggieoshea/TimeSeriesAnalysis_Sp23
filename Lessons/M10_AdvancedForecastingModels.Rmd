@@ -299,6 +299,8 @@ ARIMA_Four_fit <- auto.arima(ts_act_power_daily_train,
                              xreg=fourier(ts_act_power_daily_train, 
                                           K=c(2,12))
                              )
+#xreg --> the way we can use exogenous variables and incorporate our 2 seasonalities which is why we say seasonal = FALSE,even though we do have seasonality because it's incorporated as a regressor 
+    #Call the fourier function, just the terms necessary to model the seasonality, so for daily its 2 coefficients because its weekday or weekend, and then for each year its 12 because it's monthly (or you could do 4 because there are 4 seasons in the year) 
 
 #Forecast with ARIMA fit
 #also need to specify h for fourier terms
