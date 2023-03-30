@@ -57,6 +57,7 @@ The `ts()` function we have been using to create time series objects can only ha
 More granular data has more complex seasonality going on
   - Not just winter-summer but seasonality possible within a week (ex: weeknight vs. weekday) 
   - Hourly will have day-night seasonality as well as monthly seasonality 
+      - Hourly data has daily pattern, weekly pattern, and monthly/annual pattern
   - Many models can only happen one type of seasonality 
       - To apply ARIMA model to a complex time series, then you have to do something with the seasonality
       - State Space can handle more seasonality but will need more equations 
@@ -68,7 +69,7 @@ More granular data has more complex seasonality going on
 
 df_frequency_spec <- data.frame(
   Data = c("Annual", "Quarterly","Monthly","Weekly"),
-  Frequency = c(1,2,12,52)
+  Frequency = c(1,4,12,52)
 )
 
 kbl(df_frequency_spec, caption="Frequency used with ts() function") %>% 
@@ -134,12 +135,13 @@ temp <- tempfile()
 download.file("https://archive.ics.uci.edu/ml/machine-learning-databases/00235/household_power_consumption.zip",temp)
 household_all <- read.table(unz(temp, "household_power_consumption.txt"),header=TRUE, sep=";")
 unlink(temp)
+##unz = unzips file from online, the name of the file is listed because the zip could have many files in it 
 
 #Fixing date columns and selecting active power only column
 act_power_all <- household_all %>% 
   mutate( Global_active_power = as.numeric(Global_active_power)) %>%  
   mutate( Date = dmy(Date)) %>% 
-  mutate( Time = hms(Time)) %>% 
+  mutate( Time = hms(Time)) %>% #hms =  hour minute second which makes it essentially into a date object that can be broken down as seen below
   mutate( Year = year(Date), 
           Month = month(Date), 
           Day = day(Date), 
@@ -193,10 +195,13 @@ Recall from `ts()` function that frequency is the number of observation per seas
 ts_act_power_hourly <- msts(act_power_hourly$hourly_mean_active_power, 
                             seasonal.periods =c(24,168,8766),
                             start=c(2006,12,16))
+#seasonal periods for the hourly data are the values of hourly (24), weekly (168 which is 24 hours*7 days a week), yearly (8766 which is 24*365.25)
+#If you don't specify anything, the default frequency will choose the max 
 
 ts_act_power_daily <- msts(act_power_daily$daily_mean_active_power, 
                            seasonal.periods =c(7,365.25),
                            start=c(2006,12,16))
+#Because this is day not hourly data, then you only do the 7 for weekly patterns and 365.25 which will cover the annual pattern
 
 ```
 
@@ -210,9 +215,11 @@ Since we are only analyzing the components and don't need to store in our enviro
 ## ts_act_power_daily %>% mstl() = mstl(ts_act_power_daily)
 ts_act_power_daily %>% mstl() %>%
   autoplot()
+#The lighter/darker one is the weekly pattern, it's darker because there are more observations in that area in between the lighter ones (zoom to see)  
 
 ts_act_power_hourly %>% mstl() %>%
   autoplot()
+#There are more plots here because after the trend its the hourly seasonality, the weekly seasonality, then the yearly seasonality 
 
 ```
 
@@ -228,6 +235,8 @@ Start by creating a subset of the time series to fit the models and leave observ
 
 ```{r message=FALSE, warning=FALSE}
 #create a subset for training purpose
+
+##For training you can make one that is the same as your original msts with just one year less 
 n_for = 365
 ts_act_power_daily_train <- subset(ts_act_power_daily,
                                    end = length(ts_act_power_daily)-n_for)
@@ -235,6 +244,7 @@ ts_act_power_daily_train <- subset(ts_act_power_daily,
 #create a subset for testing purpose
 ts_act_power_daily_test <- subset(ts_act_power_daily,
                                    start = length(ts_act_power_daily)-n_for)
+#For testing you can take just the last 365 observations 
 
 autoplot(ts_act_power_daily_train)
 autoplot(ts_act_power_daily_test)
