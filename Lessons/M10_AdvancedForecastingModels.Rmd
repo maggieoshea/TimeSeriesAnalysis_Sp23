@@ -54,11 +54,20 @@ So far we considered only monthly seasonal patterns. But higher frequency data i
 
 The `ts()` function we have been using to create time series objects can only handle one type of seasonality and the `frequency` argument only takes integer values. When working with higher frequency data with multiple seasonalities you should use the `msts` class from package `forecast`. 
 
+More granular data has more complex seasonality going on
+  - Not just winter-summer but seasonality possible within a week (ex: weeknight vs. weekday) 
+  - Hourly will have day-night seasonality as well as monthly seasonality 
+  - Many models can only happen one type of seasonality 
+      - To apply ARIMA model to a complex time series, then you have to do something with the seasonality
+      - State Space can handle more seasonality but will need more equations 
+  - TS function, if you have more than one seasonality you have to choose what frequency to specify (365 for daily, or 12 for monthly seasonality)
+      - if  you want to do both then you have to use msts which stands for multiple seasonality time series 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 #include only output table in report not the code used to generate
 
 df_frequency_spec <- data.frame(
-  Data = c("Annual", "Quartely","Monthly","Weekly"),
+  Data = c("Annual", "Quarterly","Monthly","Weekly"),
   Frequency = c(1,2,12,52)
 )
 

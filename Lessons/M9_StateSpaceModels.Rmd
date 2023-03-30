@@ -242,7 +242,8 @@ SNAIVE_scores <- accuracy(SNAIVE_seas$mean,last_obs)
 SARIMA_scores <- accuracy(SARIMA_for$mean,last_obs)
 
 # Model 4:  SSES
-SSES_scores <- accuracy(SSES_seas$forecast,last_obs)
+SSES_scores <- accuracy(SSES_seas$mean,last_obs)
+## Changed this to mean away from forecast because forecast wasn't working 
 
 # Model 5:  BSM 
 SS_scores <- accuracy(SS_for$mean,last_obs)
@@ -291,7 +292,7 @@ autoplot(ts_electricity_price[,"All.sectors"]) +
   autolayer(MEAN_seas, PI=FALSE, series="Mean") +
   autolayer(SNAIVE_seas, PI=FALSE, series="Naïve") +
   autolayer(SARIMA_for,PI=FALSE, series="SARIMA") +
-  autolayer(SSES_seas$forecast, series="SSES") +
+  autolayer(SSES_seas$mean, series="SSES") +
   autolayer(SS_for,PI=FALSE,series="BSM") + 
   xlab("Month") + ylab("Electricity Retail Price ($/kWh)") +
   guides(colour=guide_legend(title="Forecast"))
