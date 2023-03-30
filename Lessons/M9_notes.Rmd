@@ -1,0 +1,74 @@
+---
+Author: Maggie O'Shea
+---
+
+## State Space Models
+
+# What's next
+  - After you have done simple model want to improve -- other forecasting techniques can make model more accurate
+  - The ARIMA after a few predictions it will converge with the historical mean
+      - Converging to seasonal component or trend 
+  - To improve, can incorporate including other predictors 
+      - if variable highly dependent on exogenous factor 
+      - ARMAX --> still a linear regression but with exogenous predictors 
+          - Different from ARIMA which is an autoregression, relying on self data
+          - ARMAX: Autoregressive, Moving Average, Exogenous Predictor
+          - Other variables must also be time series
+          
+# Other Models
+Overview
+    - Model not only the variable but also the coefficients
+        - Also have an equation for coefficients, which is also indexed by time so can also forecast coefficients so then have variance associated with coefficients
+            - Error term also becomes of coefficients 
+    - Bayesian Approach 
+        - Framework for updating coefficients over time
+        
+## State Space Models 
+  - State Space approach offers general and powerful framework to operate with time series data           
+      - use models to model climate variables with different trends over time -- wider range of datasets 
+      - classical linear regression is special case of state space model 
+          - just a state space model with constant coefficients 
+  - State Spaces decompose of time series into components and then analyze each in real time to infer best historical estimates (smoothing) and to forecast all components as well as original series 
+  - Kalman Filter:    
+      - Approach allows to influence a priori knowledge through suitable bayesian formulation of initial state vector 
+          - initial forecast, see the future, update, etc. -- bayesian approach
+          
+## Bayesian Statistics
+    - Frequentist asks what is the likelihood of data point given this model 
+    - Bayesian asks: what is the likelihood of this model given this data point?
+        - have initial beliefs, new information, then update beliefs
+
+## Time Series Decomposition
+    - Classic decomposition of time series
+        - yt= mut+ gammat+errort 
+            - yt = observation; mut = trend component; gammat= seasonal component
+    - Component can be determinist (ARIMA) or functions of time (Stochastic)
+        - deterministic: not indexxed by 't'
+        - but now everything indexed by t --> stochastic
+        
+## Local Level Model 
+  - Deterministic Example --> just remove t index on mu 
+  - Stochastic example: 
+      - yt = mut+errort
+          - errors are normally distributed 
+      - If mut is a function of time, we also need a model for mut 
+          - mut+1 = mut+error term
+      - What do we need to specify?
+          - the first mu (mu1) which will be prior beliefs which is normally distributed and need prior belief for distribution of mu1
+          - also variance of error term for observation equation and variance of error term for level equation 
+
+## Local Linear Trend Model 
+  - 
+
+
+Hello! 
+Thank you so much for 
+
+
+
+
+
+
+
+
+

@@ -172,7 +172,7 @@ Notice the residual series seems to be random and ACF shows no significant self 
 Let's start by trying an exponential smoothing under the state space model. In teh videos we went over the state equation for level only. But the ES can be used to represent trend and seasonal as well, these are know as ETS (Exponential Trend and Seasonal) models. We will talk in more details on M11.
 
 ```{r}
-SSES_seas <- es(ts_price,model="ZZZ",h=n_for,holdout=FALSE,silent="none")
+SSES_seas <- ses(ts_price,model="ZZZ",h=n_for,holdout=FALSE,silent="none")
 plot(SSES_seas)
 checkresiduals(SSES_seas)
 ```
@@ -189,8 +189,20 @@ The function takes a few arguments, here are the important ones:
 
 
 ```{r}
+SS_seas_na <- StructTS(ts_price,
+                    type="BSM",fixed=c(NA, NA, NA,NA)) 
+SS_seas_na$coef
+
+checkresiduals(SS_seas_na)
+#You can see in the ACF that there is seasonal correlations. Problem with ACF is that the errors are correlated, where they seem to have strong correlation happening so you can go back and play with values of variance to try to fix this 
+
 SS_seas <- StructTS(ts_price,
                     type="BSM",fixed=c(0,0.001,0.3,NA))   #this function has convergence issues
+#In this case you're giving it a starting point, so function doesn't have to tell or figure out the variance
+#The first variance is the level of the series
+#The second is the trend variance
+#The third is seasonal variance
+#The fourth is variance associated with observations
 checkresiduals(SS_seas)
 
 #Generating forecasts
@@ -198,6 +210,7 @@ checkresiduals(SS_seas)
 SS_for <- forecast(SS_seas,h=n_for)
 plot(SS_for)
 ```
+
 ## Model Performance for forecasting 12 steps ahead
 
 We are done with backward-looking assessment. Let's move on to the forward-looking assessment for all models.
