@@ -311,6 +311,8 @@ ARIMA_Four_for <- forecast(ARIMA_Four_fit,
                            h=365
                            ) 
 
+#but here you need a forecast too not just a fit even for the regressors which is why you have h=365
+
 #Plot foresting results
 autoplot(ARIMA_Four_for) + ylab("Active Power")
 
@@ -469,4 +471,8 @@ autoplot(ts_act_power_daily_test) +
 * You may use `xreg=` to incorporate other exogenous variable like temperature and humidity.
 
 * Try combining the models with a simple average of the forecasts and check the accuracy metrics. If that leads to good model, try changing the weights when calculating the average.
+
+```{r}
+plot(rnorm(4, mean=3500, sd=5000))
+```
 
