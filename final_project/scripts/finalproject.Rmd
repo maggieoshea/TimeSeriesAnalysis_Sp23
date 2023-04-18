@@ -1,0 +1,417 @@
+---
+title: "Sea_Ice_Extent"
+author: "Hugh Cipparone, Maggie O'Shea, Nannaphat Sirison"
+date: "`r Sys.Date()`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+## INTRODUCTION
+
+Introduce project objectives here. 
+
+```{r setup, include=FALSE}
+#Load in required load packages
+library(lubridate)
+library(ggplot2)
+library(forecast)  
+library(Kendall)
+library(tseries)
+library(outliers)
+library(tidyverse)
+library(smooth)
+library(kableExtra)
+library(zoo)
+```
+
+## EXPLORING THE DATA
+
+```{r, include= FALSE}
+#Loading in the data set
+#daily data for Northern hemisphere
+df_N<-read.csv("/Users/maggieoshea/Desktop/Spring 2023/TimeSeries/TimeSeriesAnalysis_Sp23/final_project/Data/Daily/N_seaice_extent_daily_v3.0.csv")
+
+#daily date for Southern hemisphere
+df_S <- read.csv("/Users/maggieoshea/Desktop/Spring 2023/TimeSeries/TimeSeriesAnalysis_Sp23/final_project/Data/Daily/S_seaice_extent_daily_v3.0.csv")
+```
+
+```{r, include = FALSE}
+#DATA WRANGLING 
+#First row of dataframe are units (extent = 10^6 sq km)
+df_N <- df_N[-1,]
+df_S <- df_S[-1,]
+
+#Remove spaces in Month and Day columns 
+df_N$Month <- gsub("  ", "", df_N$Month)
+df_S$Month <- gsub("  ", "", df_S$Month)
+
+df_N$Day <- gsub(" ", "", df_N$Day)
+df_S$Day <- gsub(" ", "", df_S$Day)
+
+
+#Combining date columns into one single column 
+df_N$date <- paste(df_N$Year, df_N$Month, df_N$Day, sep = "-")
+df_S$date <- paste(df_S$Year, df_S$Month, df_S$Day, sep = "-")
+
+#Convert combined_date column to datetime object 
+df_N$date <- ymd(df_N$date)
+df_S$date <- ymd(df_S$date)
+
+#Making extent a numeric type
+df_N$Extent <- as.numeric(df_N$Extent)
+df_S$Extent <- as.numeric(df_S$Extent)
+
+#Remove columns that are not of interest: Keeping only date and extent column
+df_N <- df_N[, c("date","Extent")]
+df_S <- df_S[, c("date","Extent")]
+
+#subset the data to have only data from 1990 onwards
+df_N_subset<-df_N %>% 
+  filter(year(date)>=1990)
+
+df_S_subset<-df_S %>% 
+  filter(year(date)>=1990)
+
+```
+
+```{r, include = FALSE}
+#Converting to time series object 
+ts_N <- msts(df_N_subset[,2], start = c(1990,01,01), seasonal.periods = c(7,365.25))
+ts_S <- msts(df_S_subset[,2],start = c(1990,01,01), seasonal.periods = c(7,365.23))
+
+
+```
+
+
+```{r, echo = FALSE}
+ggplot()+
+  geom_line(data = df_N, aes(x= date,  y= Extent, color = "North"))+
+  geom_line(data= df_S, aes(x=date,  y=Extent, color = "South"))+
+  scale_color_manual(values = c("dark blue", "orange")) +
+  labs(title = "Sea Ice Extent", y = "Extent: 10^6 sq km", x = "Year")+
+  scale_x_date(date_breaks = "10 years", date_labels = "%Y")+
+  theme_minimal()
+```
+
+Quick discussion of what we see.
+This plot of sea ice extent shows a few notable patterns. First, in both north and south sea ice, there is clearly a seasonal patterning which is expected as melting occurs in the warm season while ice growth occurs in the cold season. Importantly, these seasons are the opposite in the north and south. In addition, it shows that the South has greater variation - with more ice in the cold season and less in the warm season. These are all expected patterns, but their representation in the data is important to note. Finally, it appears that there may be a declining trend, particularly visible in the northern sea ice data, however, further analysis is needed to fully examine and understand this. 
+
+## DATA ANALYSIS
+
+#Examining Seasonality and Trend (Decomposition)
+
+```{r, echo = FALSE}
+ts_N %>% mstl() %>%autoplot()
+```
+Discussion of what we see. → Compare seasonality observed weekly vs. monthly
+
+```{r, echo = FALSE}
+ts_S %>% mstl() %>%autoplot()
+
+
+```
+Discussion of what we see. → Compare seasonality observed weekly vs. monthly
+
+
+## FORECASTING
+
+#Model 1 : SARIMA
+
+As we saw in the decomposition, there is no strong seasonality that we observe weekly, but strong monthly seasonality observed. As a result, even though the original day is provided daily, we created a new dataframe that takes the average across days of the month to arrive at a monthly average. This allows us to use the SARIMA forecast. 
+
+```{r, include = FALSE}
+#Take mean of sea ice extent across days of the month --> arrive at monthly df 
+#1.convert date column to yearmon format
+df_N_monthly <- df_N_subset
+df_N_monthly$date <- as.yearmon(df_N_monthly$date)
+
+df_S_monthly <- df_S_subset
+df_S_monthly$date <- as.yearmon(df_S_monthly$date)
+
+#2.calculate monthly mean
+df_N_monthly_mean <- aggregate(Extent ~ date, data = df_N_monthly, FUN = mean)
+df_S_monthly_mean <- aggregate(Extent ~ date, data = df_S_monthly, FUN = mean)
+
+#3.Convert to ts object for monthly averaged data
+n_obs_n = nrow(df_N_monthly_mean)
+#This value (n_for) is 12 months which represents the amount of time subtracted from the training dataset that will then be forecasted and compared
+n_for = 12
+n_obs_s = nrow(df_S_monthly_mean)
+
+#Training Datasets
+ts_N_monthly <- ts(df_N_monthly_mean[1:(n_obs_n-n_for),2], frequency = 12, start= c(1990,1))
+ts_S_monthly <- ts(df_S_monthly_mean[1:(n_obs_s-n_for),2], frequency = 12,start= c(1990,1))
+
+#Full datasets
+ts_N_monthly_full <- ts(df_N_monthly_mean[,2], frequency = 12, start= c(1990,1))
+ts_S_monthly_full <- ts(df_S_monthly_mean[,2], frequency = 12, start= c(1990,1))
+```
+
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+#SARIMA Model (autofit) and forecast with training data
+
+#Northern hemisphere model
+N_SARIMA_autofit <- auto.arima(ts_N_monthly)
+N_SARIMA_for <- forecast(N_SARIMA_autofit, h=12)
+
+#Southern hemisphere model
+S_SARIMA_autofit <- auto.arima(ts_S_monthly)
+S_SARIMA_for <- forecast(S_SARIMA_autofit, h=12)
+```
+
+```{r, echo= FALSE}
+#Comparison plot with original full data: Northern hemisphere
+autoplot(ts_N_monthly_full) +
+autolayer(N_SARIMA_for,series="Seasonal ARIMA",PI=FALSE) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Northern Hemisphere: SARIMA Forecast vs. Monthly Averaged Original Data")+
+theme_minimal()
+```
+Discussion 
+
+```{r, echo= FALSE}
+#Comparison plot with original data: Northern hemisphere
+autoplot(ts_S_monthly_full, size=0.75) +
+autolayer(S_SARIMA_for,series="Seasonal ARIMA",PI=FALSE, size=0.5) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Southern Hemisphere: SARIMA Forecast vs. Monthly Averaged Original Data")+
+theme_minimal()
+```
+Discussion 
+
+## SARIMA Forecast with full datasets
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+#SARIMA Model (autofit) and forecast with training data
+
+#Northern hemisphere model
+N_SARIMA_fulldata <- auto.arima(ts_N_monthly_full)
+N_SARIMA_for_fulldata <- forecast(N_SARIMA_fulldata, h=(12*7))
+
+#Southern hemisphere model
+S_SARIMA_fulldata <- auto.arima(ts_S_monthly_full)
+S_SARIMA_for_fulldata <- forecast(S_SARIMA_fulldata, h=(12*7))
+```
+
+```{r, echo= FALSE}
+#Plot Southern Hemisphere forecast
+autoplot(ts_N_monthly_full, size=0.75) +
+autolayer(N_SARIMA_for_fulldata, series="Seasonal ARIMA",PI=FALSE, size=0.5) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Northern Hemisphere: SARIMA Forecast of Sea Ice Extent")+
+theme_minimal()
+```
+
+```{r, echo= FALSE}
+#Plot Southern Hemisphere forecast
+autoplot(ts_S_monthly_full, size=0.75) +
+autolayer(S_SARIMA_for_fulldata, series="Seasonal ARIMA",PI=FALSE, size=0.5) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Southern Hemisphere: SARIMA Forecast of Sea Ice Extent")+
+theme_minimal()
+```
+
+
+
+#Model 2 : ETS+STL
+
+## Training Data
+```{r}
+#Northern Hemisphere
+#Fit and forecast STL + ETS model to training data
+ETS_trainingdata_N <-  stlf(ts_N_monthly,h=12)
+
+#Plot foresting results
+autoplot(ETS_trainingdata_N) + ylab("Active Power")
+
+#Plot model + observed data
+autoplot(ts_N_monthly_full) +
+  autolayer(ETS_trainingdata_N, series="STL + ETS",PI=FALSE) +
+  ylab("Sea ice extent (10^6 sq km)") +
+  theme_minimal()
+
+accuracy(ETS_trainingdata_N)
+```
+Discussion
+
+```{r}
+#Southern Hemisphere
+#Fit and forecast STL + ETS model to data
+ETS_trainingdata_S <-  stlf(ts_S_monthly,h=12)
+
+#Plot foresting results
+autoplot(ETS_trainingdata_S) + ylab("Active Power")
+
+#Plot model + observed data
+autoplot(ts_S_monthly_full) +
+  autolayer(ETS_trainingdata_S, series="STL + ETS",PI=FALSE) +
+  ylab("Sea ice extent (10^6 sq km)") +
+  theme_minimal()
+
+accuracy(ETS_trainingdata_S)
+```
+
+Discussion
+
+Discussion
+
+#Model 3 : State Space Model (BSM)
+
+
+##Training Data - North
+```{r}
+BSM_training_N <- StructTS(ts_N_monthly,
+                 type="BSM",fixed=c(NA,NA,NA,NA)) 
+
+BSM_training_N_for <- forecast(BSM_training_N,h=n_for)
+plot(BSM_training_N_for)
+
+#Plot model + observed data
+autoplot(ts_N_monthly_full) +
+  autolayer(BSM_training_N_for, series="BSM",PI=FALSE) +
+  ylab("Active Power")
+
+accuracy(BSM_training_N_for)
+
+```
+
+
+##Training Data - South
+```{r}
+BSM_training_S <- StructTS(ts_S_monthly,
+                    type="BSM",fixed=c(NA,NA,NA,NA)) 
+
+BSM_training_S_for <- forecast(BSM_training_S,h=n_for)
+plot(BSM_training_S_for)
+
+#Plot model + observed data
+autoplot(ts_S_monthly_full) +
+  autolayer(BSM_training_S_for, series="BSM",PI=FALSE) +
+  ylab("Active Power")
+
+accuracy(BSM_training_S_for)
+
+```
+
+
+
+##FORECAST PERFORMANCE AND FORECAST MODEL COMPARISON
+
+#Model 1: SARIMA Accuracy
+```{r, include = FALSE}
+#Checking SARIMA forecast accuracy 
+observed_N <- df_N_monthly_mean[(n_obs_n-n_for+1):n_obs_n,2]
+observed_S <- df_S_monthly_mean[(n_obs_s-n_for+1):n_obs_s,2]
+
+N_SARIMA_for_score <- accuracy(N_SARIMA_for$mean,observed_N)
+S_SARIMA_for_score<- accuracy(S_SARIMA_for$mean,observed_S)
+```
+
+
+#Model 2: XXX Accuracy
+
+```{r, include = FALSE}
+#Checking  forecast accuracy 
+ETSforecast_N_score <- accuracy(ETS_trainingdata_N$mean, observed_N)
+ETSforecast_S_score<- accuracy(ETS_trainingdata_S$mean, observed_S)
+```
+
+
+#Model 3: BSM Accuracy
+
+```{r}
+#Checking BSM Accuracy
+
+N_BSM_for_score <- accuracy(BSM_training_N_for$mean,observed_N)
+S_BSM_for_score<- accuracy(BSM_training_S_for$mean,observed_S)
+```
+
+
+#Model 3: XXX Accuracy
+
+
+
+## Full Accuracy Table
+
+## Full Accuracy Table
+```{r}
+#create data frame
+N_scores <- as.data.frame(rbind(N_SARIMA_for_score, ETSforecast_N_score, N_BSM_for_score))
+S_scores <- as.data.frame(rbind(S_SARIMA_for_score, ETSforecast_S_score, S_BSM_for_score))
+
+row.names(N_scores) <- c("SARIMA", "ETS-STL", "BSM")
+row.names(S_scores) <- c("SARIMA", "ETS-STL", "BSM")
+
+
+```
+
+
+```{r}
+
+kbl(S_scores, 
+      caption = "Forecast Accuracy for Seasonal Monthly Data: South",
+      digits = array(5,ncol(S_scores))) %>%
+  kable_styling(full_width = FALSE, position = "center") %>%
+  #highlight model with lowest RMSE
+  kable_styling(latex_options="striped", stripe_index = which.min(S_scores[,"RMSE"]))
+
+kbl(N_scores, 
+      caption = "Forecast Accuracy for Seasonal Monthly Data: North",
+      digits = array(5,ncol(N_scores))) %>%
+  kable_styling(full_width = FALSE, position = "center") %>%
+  #highlight model with lowest RMSE
+  kable_styling(latex_options="striped", stripe_index = which.min(N_scores[,"RMSE"]))
+```
+
+##  SELECTED FULL MODEL 
+## Full Dataset(s)
+```{r}
+#Northern Hemisphere
+#Fit and forecast STL + ETS model to training data
+ETS_full_N <-  stlf(ts_N_monthly_full,h=(12*7))
+
+#Plot foresting results
+autoplot(ETS_full_N) + ylab("Active Power")
+
+#Plot model + observed data
+autoplot(ts_N_monthly_full) +
+  autolayer(ETS_full_N, series="STL + ETS",PI=FALSE) +
+  ylab("Sea ice extent (10^6 sq km)") +
+  theme_minimal()
+
+```
+
+
+
+```{r}
+#Southern Hemisphere
+#Fit and forecast STL + ETS model to data
+ETS_full_S <-  stlf(ts_S_monthly_full,h=(12*7))
+
+#Plot foresting results
+autoplot(ETS_full_S) + ylab("Active Power")
+
+#Plot model + observed data
+autoplot(ts_S_monthly_full) +
+  autolayer(ETS_full_S, series="STL + ETS",PI=FALSE) +
+  ylab("Sea ice extent (10^6 sq km)") +
+  theme_minimal()
+
+```
+
+
+Discussion
+
+##DATA SOURCE
+
+
+
+
+
+## CODE DUMP
+
+

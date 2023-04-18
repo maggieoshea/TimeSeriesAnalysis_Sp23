@@ -1,0 +1,188 @@
+---
+title: "Sea_Ice_Extent"
+author: "Hugh Cipparone, Maggie O'Shea, Nannaphat Sirison"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+## Yearly Models
+
+```{r setup, include=FALSE}
+#Load in required load packages
+library(lubridate)
+library(ggplot2)
+library(forecast)  
+library(Kendall)
+library(tseries)
+library(outliers)
+library(tidyverse)
+library(smooth)
+library(kableExtra)
+library(zoo)
+
+```
+
+## EXPLORING THE DATA
+
+```{r, include= FALSE}
+#Loading in the data set
+#daily data for Northern hemisphere
+df_N<-read.csv("/Users/maggieoshea/Desktop/Spring 2023/TimeSeries/TimeSeriesAnalysis_Sp23/final_project/Data/Daily/N_seaice_extent_daily_v3.0.csv")
+
+#daily date for Southern hemisphere
+df_S <- read.csv("/Users/maggieoshea/Desktop/Spring 2023/TimeSeries/TimeSeriesAnalysis_Sp23/final_project/Data/Daily/S_seaice_extent_daily_v3.0.csv")
+```
+
+```{r, include = FALSE}
+#DATA WRANGLING 
+#First row of dataframe are units (extent = 10^6 sq km)
+df_N <- df_N[-1,]
+df_S <- df_S[-1,]
+
+#Remove spaces in Month and Day columns 
+df_N$Month <- gsub("  ", "", df_N$Month)
+df_S$Month <- gsub("  ", "", df_S$Month)
+
+df_N$Day <- gsub(" ", "", df_N$Day)
+df_S$Day <- gsub(" ", "", df_S$Day)
+
+
+#Combining date columns into one single column 
+df_N$date <- paste(df_N$Year, df_N$Month, df_N$Day, sep = "-")
+df_S$date <- paste(df_S$Year, df_S$Month, df_S$Day, sep = "-")
+
+#Convert combined_date column to datetime object 
+df_N$date <- ymd(df_N$date)
+df_S$date <- ymd(df_S$date)
+
+#Making extent a numeric type
+df_N$Extent <- as.numeric(df_N$Extent)
+df_S$Extent <- as.numeric(df_S$Extent)
+
+#Remove columns that are not of interest: Keeping only date and extent column
+df_N <- df_N[, c("date","Extent")]
+df_S <- df_S[, c("date","Extent")]
+```
+
+
+```{r, include = FALSE}
+#Take mean of sea ice extent across days of the month --> arrive at monthly df 
+#1.convert date column to yearmon format
+df_N_yearly <- df_N
+df_N_yearly$date <- as.numeric(format(df_N_yearly$date,'%Y'))
+
+df_S_yearly <- df_S
+df_S_yearly$date <- as.numeric(format(df_S_yearly$date,'%Y'))
+
+#2.calculate monthly mean
+#Need to remove 2023 because the year isn't over so the south will appear to have plummeted on mean sea ice while the north will seem like it's grown because they haven't had both their seasons yet. 
+df_N_annual_mean <- aggregate(Extent ~ date, data = df_N_yearly, FUN = mean)%>%
+  filter(date!=2023)
+df_S_annual_mean <- aggregate(Extent ~ date, data = df_S_yearly, FUN = mean)%>%
+  filter(date!=2023)
+
+#3.Convert to ts object for monthly averaged data
+n_obs_n = nrow(df_N_annual_mean)
+#This value (n_for) is 5 years which represents the amount of time subtracted from the training dataset that will then be forecasted and compared
+n_for = 5
+n_obs_s = nrow(df_S_annual_mean)
+
+#Training Datasets
+ts_N_annual <- ts(df_N_annual_mean[1:(n_obs_n-n_for),2], frequency = 1, start= c(1978))
+ts_S_annual <- ts(df_S_annual_mean[1:(n_obs_s-n_for),2], frequency = 1,start= c(1978))
+
+#Full datasets
+ts_N_annual_full <- ts(df_N_annual_mean[,2], frequency = 1, start= c(1978))
+ts_S_annual_full <- ts(df_S_annual_mean[,2], frequency = 1, start= c(1978))
+```
+
+
+```{r, echo = FALSE}
+ggplot()+
+  geom_line(data = df_N_annual_mean, aes(x= date,  y= Extent, color = "North"))+
+  geom_line(data= df_S_annual_mean, aes(x=date,  y=Extent, color = "South"))+
+  scale_color_manual(values = c("dark blue", "orange")) +
+  labs(title = "Sea Ice Extent", y = "Extent: 10^6 sq km", x = "Year")+
+  #scale_x_date(date_breaks = "10 years", date_labels = "%Y")+
+  theme_minimal()
+```
+
+```{r}
+par(mfrow=c(1,2))
+  acf(ts_N_annual_full)
+  pacf(ts_N_annual_full)
+
+par(mfrow=c(1,2))
+  acf(ts_S_annual_full)
+  pacf(ts_S_annual_full)
+```
+
+
+
+# ARIMA on Annual Data
+
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+#ARIMA Model (autofit) and forecast with training data
+
+#Northern hemisphere model
+N_ARIMA_training <- auto.arima(ts_N_annual)
+N_ARIMA_for_train <- forecast(N_ARIMA_training, h=5)
+
+#Southern hemisphere model
+S_ARIMA_training <- auto.arima(ts_S_annual)
+S_ARIMA_for_train <- forecast(S_ARIMA_training, h=5)
+```
+
+
+```{r, echo= FALSE}
+#Comparison plot with original full data: Northern hemisphere
+autoplot(ts_N_annual_full) +
+autolayer(N_ARIMA_for_train,series="ARIMA",PI=FALSE) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Northern Hemisphere: SARIMA Forecast vs. Monthly Averaged Original Data")+
+theme_minimal()
+
+autoplot(ts_S_annual_full) +
+autolayer(S_ARIMA_for_train,series="ARIMA",PI=FALSE) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Northern Hemisphere: SARIMA Forecast vs. Monthly Averaged Original Data")+
+theme_minimal()
+```
+
+## ARIMA on full dataset
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+#ARIMA Model (autofit) and forecast with *full* dataset
+
+#Northern hemisphere model
+N_ARIMA_full <- auto.arima(ts_N_annual_full)
+N_ARIMA_for_full <- forecast(N_ARIMA_full, h=10)
+
+#Southern hemisphere model
+S_ARIMA_full <- auto.arima(ts_S_annual_full)
+S_ARIMA_for_full <- forecast(S_ARIMA_full, h=10)
+```
+
+
+```{r, echo= FALSE}
+#Comparison plot with original full data: Northern hemisphere
+autoplot(ts_N_annual_full) +
+autolayer(N_ARIMA_for_full,series="ARIMA",PI=FALSE) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Northern Hemisphere: SARIMA Forecast vs. Monthly Averaged Original Data")+
+theme_minimal()
+
+autoplot(ts_S_annual_full) +
+autolayer(S_ARIMA_for_full,series="ARIMA",PI=FALSE) +
+ylab("Sea ice extent (10^6 sq km)") +
+xlab("Time/ Year") +
+labs(title="Northern Hemisphere: SARIMA Forecast vs. Monthly Averaged Original Data")+
+theme_minimal()
+```
+
+You can see in the Northern Hemisphere plots that the model predicts a steady decline in sea ice, ultimately approaching zero sometime after 2050. However, we know that the decline in sea ice is exponential, not linear due to albedo leading to a positive feedback loop of melting. Because of this, scientists predict that the arctic will have no summer sea ice as soon as 2035 which is much sooner than our model predicts. 
+
+
+

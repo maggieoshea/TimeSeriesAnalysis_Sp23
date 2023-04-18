@@ -1,0 +1,55 @@
+---
+Author: Maggie O'Shea
+---
+
+## Scenario Generation 
+
+  - When a statistical model can be used to describe uncertainty, the decision problem can be modeled as a stochastic optimization problem 
+
+# Stochasticity or Uncertainty
+  - Origins of uncertainty: 
+      - Future information (prices or demand) 
+      - Lack of reliable data
+      - Measurement errors
+  - In electric energy systems planning, sources of uncertainty: 
+      - Demand(yearly, seasonal or daily variation, load growth) 
+      - Hydro, wind, and solar (natural resources)
+      - Availability of generation or network elements
+      - electricity or fuel prices
+
+#Stochastic Optimization 
+  - Optimizing or making decisions under uncertainty
+  - Why uncertain?
+      - Data unavailable or expensive, instead data specified by probability distribution 
+  - Objective: Make the *best decisions* given the uncertainty
+  - Approach: Multi-stage recourse model 
+      - Given: probability distribution over inputs
+      - Stage 1: Make advance decisions - plan ahead or hedge against uncertainty
+          - Observe actual input scenario
+      - Stage 2: take recourse, agument earlier paying a recourse cost
+
+# Decisions Under Uncertainty
+  - Deterministic Optimization: 
+      - Best decision when future is known
+  - Stochastic Optimization
+      - Better decision when future is uncertain with a known probability
+  - How? Decision/Scenario Tree
+
+# Scenario Tree generation 
+  - Correlation among random parameters should be considered
+  - Number of scenarios generated should be enough for observing parameter viability
+  - Common Methods
+      - Monte Carlo Sampling Methods --> simulation
+      - Quasi-Monte Carlo Methods
+      - Optimal quantization of probability distributions
+      
+# Simulations in R 
+  - Possible to simulate data with R using random number generators of different kids of variables
+  - Sampling from: 
+      - Multinomial distributions: sample(1:4,1000, rep = TRUE, prob = c(.2, .3, ...))
+      - Uniform distribution: runif(n, min=0, max=25)
+      - Normal Distribution: rnorm(n, mean=0, sd=1)
+      - Exponential Dsitribution: rexp(n, rate=1)
+      
+      
+      

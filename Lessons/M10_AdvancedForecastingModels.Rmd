@@ -291,12 +291,12 @@ Fourier terms are used to model the seasonal components. It resembles the season
 ```{r ARIMA, echo=TRUE, message=FALSE, warning=FALSE}
 #Fit arima model with fourier terms as exogenous regressors
 # seasonal = FALSE is the same as P=D=Q=0
-# play with K by changing it to K=c(2,2), K=c(2,4), K=c(2,6), etc. The higher teh K the longer it will take to converge, because R will try more models.
+# play with K by changing it to K=c(2,2), K=c(2,4), K=c(2,6), etc. The higher the K the longer it will take to converge, because R will try more models.
 
 ARIMA_Four_fit <- auto.arima(ts_act_power_daily_train, 
                              seasonal=FALSE, 
                              lambda=0,
-                             xreg=fourier(ts_act_power_daily_train, 
+                             xreg=fourier(ts_act_power_daily_train, #xreg adds exogenous variables, but in this case it's a seasonal component, and don't know how many terms there will be etc. so fourier will search to find the best one but you have to give it some options like 2 (seasonal weekday and weekend) and 12 (monthly)
                                           K=c(2,12))
                              )
 #xreg --> the way we can use exogenous variables and incorporate our 2 seasonalities which is why we say seasonal = FALSE,even though we do have seasonality because it's incorporated as a regressor 

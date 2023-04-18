@@ -46,9 +46,11 @@ Recall we have 3 variables that follow a $N(0,1)$ distribution and are highly co
 ```{r}
 
 nvar=3
+#Need 3 variables
 nscen=1000
+#This is scenarios = 1000 scenarios 
 
-#Generate 1000 normal random variates for each variable 
+#Generate 1000 normal random variates for each of 3 variables 
 X=array(0,c(nvar,nscen))
 for(i in 1:nvar){
   X[i,]=rnorm(nscen,mean=0,sd=1)   
@@ -61,6 +63,7 @@ for(i in 1:nvar){
 
 #Calculating correlation matrix R
 Xcor=cor(t(X))  
+#First, totally uncorrelated 
 
 # Note: the t(X) will return the transpose of matrix X. 
 # We need to transpose so that cor() function finds the correlations
@@ -80,12 +83,15 @@ R[1,3]=0.9
 R[3,1]=0.9
 R[2,3]=0.85
 R[3,2]=0.85
+#This should be the correlation among 3 variables according to historical data 
 
-# Get Cholesky decomposition, chol() will give upper triangular matrix
+# Get Cholesky decomposition, chol() will give upper triangular matrix with the values that we input (R matrix) 
 U=chol(R)
 
 # Transpose U to get lower triangular matrix just 
 L=t(U) 
+#If you multiple L * U you should get the same correlation matrix that you had before (R)
+L%*%U
 
 #Passing the correlation matrix R to the the scenarios in matrix X
 
@@ -95,7 +101,7 @@ Y=L%*%X   # the symbol %*% is for matrix multiplication
 Ycor=cor(t(Y))  
 print(Ycor) #compare Ycor with R and you will see it worked.
 ```
-
+Drawing from 2 different variables and you have the distribution, you need the joined distribution in order to get the correlations be what you want - so it's easier to use the Cholesky decomposition (method above) which involves matrices 
 
 ## Generating scenarios with Arima
 
